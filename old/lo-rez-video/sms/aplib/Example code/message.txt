@@ -1,0 +1,14 @@
+This message has been
+compressed with aPLib. It
+is a demonstration of how to
+decompress small blocks of
+data into RAM.
+
+It compresses from 329 bytes
+down to 242 bytes, compression
+of 27%. That's not much
+because it's a small file so
+there are less opportunities
+for data matching. For
+comparison, Zip compresses it
+to 220 bytes.

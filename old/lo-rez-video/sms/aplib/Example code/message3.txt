@@ -1,0 +1,18 @@
+The font for this demo has been
+compressed with aPLib, from 3072
+to 615 bytes (compression of
+80%). Zip can compress it to 513
+bytes. This is somewhat extreme
+because it's only 1bpp font
+data, though.
+
+It requires some work to
+adjust the decompressor to work
+with VRAM, because it has both
+read and write VRAM, which is a
+real hassle on the SMS. Luckily,
+it never uses the same code for
+reading from thr source (ROM)
+and reading from the destination
+(VRAM) so it's easier than it
+might have been.

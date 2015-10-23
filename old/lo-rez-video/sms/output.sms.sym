@@ -1,0 +1,15 @@
+; this file was created with wlalink by ville helin <vhelin@iki.fi>.
+; no$gmb symbolic information for "output.sms".
+0000:0068 main
+0000:00c3 SetVDPAddress
+0000:00cc CopyToVDP
+0000:00d6 Message
+0000:00e3 PaletteData
+0000:00e5 PaletteDataEnd
+0000:00e5 VDPInitData
+0000:00f7 VDPInitDataEnd
+0000:00f7 FontData
+0000:0cd7 VideoData
+0000:0047 *WLA_SDSC_PRG_AUTHOR_PTR
+0000:003a *WLA_SDSC_PRG_NAME_PTR
+0000:0006 *WLA_SDSC_PRG_NOTES_PTR

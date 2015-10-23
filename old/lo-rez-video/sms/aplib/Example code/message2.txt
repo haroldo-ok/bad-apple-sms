@@ -1,0 +1,24 @@
+This entire program, except
+for the necessary decompressor
+stub, has been compressed with
+aPLib. It includes
+everything needed to set up
+the SMS, clear VRAM, load a
+font, and draw ASCII text,
+including handling line
+breaks. Not the hardest thing
+in the world, everything but
+the message takes up about
+1KB.
+
+A stub program just
+decompresses it to RAM at
+$c000 and executes it.
+
+The SMS doesn't have much RAM,
+so it's not a general-purpose
+utility, but it's an important
+proof of concept for me and I
+found it interesting to write
+code designed to run out of
+RAM.
