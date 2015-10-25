@@ -56,11 +56,21 @@
 					return destFrame;
 				});
 				
+				converted.stats = {
+					maxTileCount: _.chain(converted.frames).pluck('tiles').pluck('length').max().value(),
+					frameCount: converted.frames.length,
+					globalTileCount: _.chain(converted.frames).pluck('tiles').pluck('length').reduce(function(s, n){ return s + n }, 0).value(),
+					globallyUniqueTileCount: _.chain(converted.frames).pluck('tiles').reduce(function(o, ts){ 
+						return ts.reduce(function(o2, t){ o2[t] = true; return o2; }, o);
+					}, {}).keys().value().length
+				};
+				converted.stats.estimatedMaximumSize = 
+						converted.stats.frameCount * converted.tileCountX * converted.tileCountX + 
+						converted.stats.globalTileCount * 8;
+				
 				window.convertedVideo = converted;
 				console.info('Done!');
-				console.info({
-					maxTileCount: _.chain(convertedVideo.frames).pluck('tiles').pluck('length').max().value()
-				});
+				console.info(converted.stats);
 			});
 		})
 	</script>
