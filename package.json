@@ -1,0 +1,15 @@
+{
+  "name": "bad-apple-sms",
+  "version": "0.1.0",
+  "description": "Bad Apple for SMS\r =================",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/haroldo-ok/bad-apple-sms/"
+  },
+  "author": "Haroldo de Oliveira Pinheiro",
+  "license": "Apache"
+}
