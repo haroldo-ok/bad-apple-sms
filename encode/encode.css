@@ -1,0 +1,10 @@
+body.loading > div ,
+body > div.loading-messsage
+{
+	display: none;
+}
+
+body.loading > div.loading-messsage
+{
+	display: block;
+}
