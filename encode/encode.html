@@ -71,6 +71,11 @@
 				window.convertedVideo = converted;
 				console.info('Done!');
 				console.info(converted.stats);
+
+				// Save encoded video as JSON
+				var json = JSON.stringify(converted, null, '\t');
+				var blob = new Blob([json], {type: "text/plain;charset=utf-8"});
+				saveAs(blob, "encoded-video-" + converted.tileCountX + 'x' + converted.tileCountY + '-' + converted.frameRate + 'fps.json');
 			});
 		})
 	</script>
