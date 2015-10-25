@@ -2,3 +2,4 @@
 /data/unencoded-video-20x15-30fps.json
 *.log
 /node_modules
+/data/encoded-video-20x15-30fps.json
