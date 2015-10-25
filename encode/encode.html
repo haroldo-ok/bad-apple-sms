@@ -14,12 +14,53 @@
 
 <body class="loading">
 	<div class="loading-messsage">Loading...</div>
+	
+	<div>
+		<button id="encoding-button">Start encoding</button>
+	</div>
 
 	<script>
 		$(document).ready(function(){
 			$.ajax('../data/unencoded-video-20x15-30fps.json').then(function(json){
-				console.log(json);
+				window.originalVideo = json;
 				$('body').removeClass('loading');
+			});
+			
+			$('#encoding-button').click(function(){
+				var converted = _.pick(originalVideo, 'tileCountX', 'tileCountY', 'frameRate');
+				converted.format = 'TILE_MAP';
+				converted.frames = originalVideo.frames.map(function(origFrame){
+					var destFrame = {
+						number: origFrame.number,
+						tiles: [],
+						map: []
+					};
+					
+					var tileNumbers = {};
+					origFrame.tiles.forEach(function(encodedTile, index){
+						var tileNumber = tileNumbers[encodedTile];
+						if (_.isUndefined(tileNumber)) {
+							tileNumber = destFrame.tiles.length;
+							destFrame.tiles.push(encodedTile);
+							tileNumbers[encodedTile] = tileNumber;
+						}
+						
+						var tx = index % originalVideo.tileCountX;
+						var ty = Math.floor(index / originalVideo.tileCountX);
+						if (!destFrame.map[ty]) {
+							destFrame.map[ty] = [];
+						}
+						destFrame.map[ty][tx] = tileNumber;
+					});
+					
+					return destFrame;
+				});
+				
+				window.convertedVideo = converted;
+				console.info('Done!');
+				console.info({
+					maxTileCount: _.chain(convertedVideo.frames).pluck('tiles').pluck('length').max().value()
+				});
 			});
 		})
 	</script>
