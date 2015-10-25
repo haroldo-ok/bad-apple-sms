@@ -4,12 +4,16 @@
   "description": "Bad Apple for SMS\r =================",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+	"server": "node node_modules/http-server/bin/http-server"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/haroldo-ok/bad-apple-sms/"
   },
   "author": "Haroldo de Oliveira Pinheiro",
-  "license": "Apache"
+  "license": "Apache",
+  "dependencies": {
+    "http-server": "^0.8.5"
+  }
 }

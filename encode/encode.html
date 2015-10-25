@@ -12,6 +12,13 @@
 </head>
 
 <body>
+	<script>
+		$(document).ready(function(){
+			$.ajax('../data/unencoded-video-20x15-30fps.json').then(function(json){
+				console.log(json);
+			});
+		})
+	</script>
 </body>
 
 </html> 
