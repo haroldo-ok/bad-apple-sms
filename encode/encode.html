@@ -4,6 +4,7 @@
 	<meta charset="UTF-8">
 	<title>Video encoder</title>
 
+	<link rel="stylesheet" type="text/css" href="encode.css">
 	<script src="../js/third-party/jquery-1.8.1.js" type="text/javascript"></script>
 	<script src="../js/third-party/base64.js" type="text/javascript"></script>
 	<script src="../js/third-party/underscore-min.js" type="text/javascript"></script>
@@ -11,11 +12,14 @@
 	<script src="../js/tileset.js" type="text/javascript"></script>
 </head>
 
-<body>
+<body class="loading">
+	<div class="loading-messsage">Loading...</div>
+
 	<script>
 		$(document).ready(function(){
 			$.ajax('../data/unencoded-video-20x15-30fps.json').then(function(json){
 				console.log(json);
+				$('body').removeClass('loading');
 			});
 		})
 	</script>
