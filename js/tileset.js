@@ -1,3 +1,5 @@
+"use strict";
+
 (function(){
 
 var DITHER_THRESHOLDS_4x4 = [
