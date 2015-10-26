@@ -14,7 +14,7 @@
 							tileBits[i][j + 1] +
 							tileBits[i + 1][j + 1];
 					
-					averaged.push(val / 4.0);
+					averaged.push(Math.floor(val));
 				}					
 			}
 			
@@ -43,7 +43,7 @@
 			}, {});
 			
 			var dataForClustering = makeDataForClustering(_.keys(tileFrequency));
-			var clusters = clusterfck.kmeans(_.keys(dataForClustering), 2048);
+			var clusters = clusterfck.kmeans(_.keys(dataForClustering), 2048, "manhattan", null, null, 2);
 			
 			converted.frames = originalVideo.frames.map(function(origFrame){
 				

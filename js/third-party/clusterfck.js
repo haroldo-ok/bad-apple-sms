@@ -568,7 +568,7 @@ function closestCentroid(point, centroids, distance) {
    return index;
 }
 
-function kmeans(points, k, distance, snapshotPeriod, snapshotCb) {
+function kmeans(points, k, distance, snapshotPeriod, snapshotCb, maxIterations) {
    distance = distance || "euclidean";
    if (typeof distance == "string") {
       distance = distances[distance];
@@ -620,6 +620,10 @@ function kmeans(points, k, distance, snapshotPeriod, snapshotCb) {
       if (snapshotCb && (iterations++ % snapshotPeriod == 0)) {
          snapshotCb(clusters);
       }
+	  
+	  if (maxIterations && iterations > maxIterations) {
+		return clusters;		  
+	  }
    }
    return clusters;
 }
