@@ -67,6 +67,7 @@
 				converted.stats.estimatedMaximumSize = 
 						converted.stats.frameCount * converted.tileCountX * converted.tileCountX + 
 						converted.stats.globalTileCount * 8;
+				converted.stats.averageTilesPerFrame = Math.round(converted.stats.globalTileCount / converted.stats.frameCount);
 				
 				window.convertedVideo = converted;
 				console.info('Done!');
