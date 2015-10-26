@@ -10,6 +10,8 @@
 	<script src="../js/third-party/underscore-min.js" type="text/javascript"></script>
 	<script src="../js/third-party/FileSaver.js" type="text/javascript"></script>
 	<script src="../js/tileset.js" type="text/javascript"></script>
+	<script src="../js/tileset-encoder.js" type="text/javascript"></script>
+	<script src="../js/tileset-encoder-repeated.js" type="text/javascript"></script>
 </head>
 
 <body class="loading">
@@ -27,48 +29,8 @@
 			});
 			
 			$('#encoding-button').click(function(){
-				var converted = _.pick(originalVideo, 'tileCountX', 'tileCountY', 'frameRate');
-				converted.format = 'TILE_MAP';
-				converted.frames = originalVideo.frames.map(function(origFrame){
-					var destFrame = {
-						number: origFrame.number,
-						tiles: [],
-						map: []
-					};
-					
-					var tileNumbers = {};
-					origFrame.tiles.forEach(function(encodedTile, index){
-						var tileNumber = tileNumbers[encodedTile];
-						if (_.isUndefined(tileNumber)) {
-							tileNumber = destFrame.tiles.length;
-							destFrame.tiles.push(encodedTile);
-							tileNumbers[encodedTile] = tileNumber;
-						}
-						
-						var tx = index % originalVideo.tileCountX;
-						var ty = Math.floor(index / originalVideo.tileCountX);
-						if (!destFrame.map[ty]) {
-							destFrame.map[ty] = [];
-						}
-						destFrame.map[ty][tx] = tileNumber;
-					});
-					
-					return destFrame;
-				});
-				
-				converted.stats = {
-					maxTileCount: _.chain(converted.frames).pluck('tiles').pluck('length').max().value(),
-					frameCount: converted.frames.length,
-					globalTileCount: _.chain(converted.frames).pluck('tiles').pluck('length').reduce(function(s, n){ return s + n }, 0).value(),
-					globallyUniqueTileCount: _.chain(converted.frames).pluck('tiles').reduce(function(o, ts){ 
-						return ts.reduce(function(o2, t){ o2[t] = true; return o2; }, o);
-					}, {}).keys().value().length
-				};
-				converted.stats.estimatedMaximumSize = 
-						converted.stats.frameCount * converted.tileCountX * converted.tileCountX + 
-						converted.stats.globalTileCount * 8;
-				converted.stats.averageTilesPerFrame = Math.round(converted.stats.globalTileCount / converted.stats.frameCount);
-				
+				var converted = new TileSetEncoders.RepeatedTileEncoder().encode(originalVideo);
+			
 				window.convertedVideo = converted;
 				console.info('Done!');
 				console.info(converted.stats);
