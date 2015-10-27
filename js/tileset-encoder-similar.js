@@ -56,7 +56,7 @@
 			}, {});
 			
 			var dataForClustering = makeDataForClustering(_.keys(tileFrequency));
-			var clusters = clusterfck.kmeans(_.pluck(dataForClustering, 'data'), 2048, "manhattan", null, null, 2);
+			var clusters = progressiveKMeans(_.pluck(dataForClustering, 'data'), 2048)
 			
 			converted.frames = originalVideo.frames.map(function(origFrame){
 				
