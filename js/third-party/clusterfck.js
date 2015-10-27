@@ -621,7 +621,7 @@ function kmeans(points, k, distance, snapshotPeriod, snapshotCb, maxIterations) 
          snapshotCb(clusters);
       }
 	  
-	  if (maxIterations && iterations > maxIterations) {
+	  if (maxIterations && iterations++ > maxIterations) {
 		return clusters;		  
 	  }
    }

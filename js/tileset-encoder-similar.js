@@ -3,7 +3,7 @@
 (function(){
 	
 	function makeDataForClustering(hexTiles) {
-		var dataForClustering = hexTiles.reduce(function(o, tileHex){ 
+		var dataForClustering = hexTiles.map(function(tileHex){ 
 			var tileBits = TileSet.hexToTile(tileHex);
 			
 			var averaged = [];
@@ -19,11 +19,24 @@
 			}
 			
 			var data = _.flatten(tileBits).concat(averaged);
-			o[data] = tileHex; 
-			return o; 
+			return {
+				data: data,
+				hex: tileHex
+			}; 
 		}, {});
 		
 		return dataForClustering;
+	}
+	
+	function progressiveKMeans(data, maxGroups) {
+		var clusters = [ data ];
+		while (clusters.length < maxGroups) {
+			clusters = clusters.reduce(function(a, cluster){
+				var step = clusterfck.kmeans(cluster, 2, "manhattan", null, null, 2);
+				return a.concat(step);
+			}, []);
+		}
+		return clusters;
 	}
 	
 	function SimilarTileEncoder() {		
@@ -43,7 +56,7 @@
 			}, {});
 			
 			var dataForClustering = makeDataForClustering(_.keys(tileFrequency));
-			var clusters = clusterfck.kmeans(_.keys(dataForClustering), 2048, "manhattan", null, null, 2);
+			var clusters = clusterfck.kmeans(_.pluck(dataForClustering, 'data'), 2048, "manhattan", null, null, 2);
 			
 			converted.frames = originalVideo.frames.map(function(origFrame){
 				
