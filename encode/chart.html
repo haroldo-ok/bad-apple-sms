@@ -1,0 +1,68 @@
+ <!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Video statistics</title>
+
+	<link rel="stylesheet" type="text/css" href="../js/third-party/bootstrap/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="../js/third-party/bootstrap/css/bootstrap-theme.min.css">
+	<link rel="stylesheet" type="text/css" href="encode.css">
+	
+	<script src="../js/third-party/jquery-1.8.1.js" type="text/javascript"></script>
+	<script src="../js/third-party/base64.js" type="text/javascript"></script>
+	<script src="../js/third-party/underscore-min.js" type="text/javascript"></script>
+	<script src="../js/third-party/FileSaver.js" type="text/javascript"></script>
+	<script src="../js/third-party/clusterfck.js" type="text/javascript"></script>
+	<script src="../js/util.js" type="text/javascript"></script>
+	<script src="../js/tileset.js" type="text/javascript"></script>
+</head>
+
+<body class="loading">
+	<div class="loading-messsage">Loading...</div>
+	
+	<div>
+		<dl id="general-statistics" class="dl-horizontal"></dl>
+		<table id="tile-count-table" class="table" style="max-width: 20em"></table>
+	</div>
+
+	<script>
+		$(document).ready(function(){
+			$.ajax('../data/unencoded-video-20x15-30fps.json').then(function(json){
+				window.originalVideo = json;
+				window.allTiles = _.chain(originalVideo.frames).pluck('tiles').flatten().value();
+				window.tileCounts = _.chain(allTiles).countBy().pairs().sortBy(1).reverse().value();
+				window.uniqueTilesPerFrame = _.chain(originalVideo.frames).pluck('tiles').map(function(tiles){ return _.uniq(tiles) }).value();
+				window.averageUniquePerFrame = Math.round(_.chain(uniqueTilesPerFrame)
+						.pluck('length').reduce(function(s, n){ return s + n }, 0).value() / originalVideo.frames.length)
+				
+				var tableTemplate = _.template(
+					'<tr><th>Tile</th><th>Count</th></tr>' +
+					'<% tileCounts.forEach(function(pair){ %>' +
+					'<tr><td><%= pair[0] %></td><td class="text-right"><%= pair[1] %></td></tr>' + 
+					'<% }); %>'
+				);
+				$('#tile-count-table').html(tableTemplate({ tileCounts: tileCounts }));
+				
+				var statsTemplate = _.template(
+					'<% items.forEach(function(kv){ %>' +
+					'<dt><%= kv.k %></dt>' +
+					'<dd><%= kv.v %></dt>' +
+					'<% }); %>'
+				);
+				$('#general-statistics').html(statsTemplate({ 
+					items: [
+						{k: 'Frames', v: originalVideo.frames.length},
+						{k: 'All tiles', v: allTiles.length},
+						{k: 'Unique tiles', v: window.tileCounts.length},
+						{k: 'Max. unique per frame', v: _.chain(uniqueTilesPerFrame).pluck('length').max().value()},
+						{k: 'Avg. unique per frame', v: averageUniquePerFrame}
+					]
+				}));
+				
+				$('body').removeClass('loading');
+			});
+		})
+	</script>
+</body>
+
+</html> 
