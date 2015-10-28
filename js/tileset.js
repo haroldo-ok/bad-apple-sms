@@ -18,7 +18,7 @@ var TileSet = {
 		}
 	
 		return tile.map(function(line){					
-			s = bitsToHex(line.slice(0, 4)) + bitsToHex(line.slice(4, 8));
+			var s = bitsToHex(line.slice(0, 4)) + bitsToHex(line.slice(4, 8));
 			if (s.length != 2) {
 				throw new Error("Wrong length for " + line + ": " + s);
 			}

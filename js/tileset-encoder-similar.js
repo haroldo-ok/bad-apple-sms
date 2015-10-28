@@ -58,33 +58,65 @@
 			var dataForClustering = makeDataForClustering(_.keys(tileFrequency));
 			var clusters = progressiveKMeans(_.pluck(dataForClustering, 'data'), 2048)
 			
-			converted.frames = originalVideo.frames.map(function(origFrame){
+			var mergedTiles = clusters.reduce(function(o, cluster){
+				var tilesToMerge = cluster.map(function(featureVector){
+					var data = {
+						bits: Util.inGroupsOf(featureVector.slice(0, 64), 8)
+					};
+					data.hex = TileSet.tileToHex(data.bits);
+					return data;						
+				});
+				var totalFrequency = tilesToMerge.reduce(function(t, data){ return t + tileFrequency[data.hex]; }, 0);
 				
-				var destFrame = {
-					number: origFrame.number,
-					tiles: [],
-					map: []
-				};
+				// Creates a zeroed-out merged tile
+				var mergedTile = [];
+				for (var i = 0; i != 8; i++) {
+					mergedTile[i] = [];
+					for (var j = 0; j != 8; j++) {
+						mergedTile[i][j] = 0;
+					}					
+				}
 				
-				var tileNumbers = {};
-				origFrame.tiles.forEach(function(encodedTile, index){
-					var tileNumber = tileNumbers[encodedTile];
-					if (_.isUndefined(tileNumber)) {
-						tileNumber = destFrame.tiles.length;
-						destFrame.tiles.push(encodedTile);
-						tileNumbers[encodedTile] = tileNumber;
-					}
-					
-					var tx = index % originalVideo.tileCountX;
-					var ty = Math.floor(index / originalVideo.tileCountX);
-					if (!destFrame.map[ty]) {
-						destFrame.map[ty] = [];
-					}
-					destFrame.map[ty][tx] = tileNumber;
+				// Accumulates every tile into the merged one
+				tilesToMerge.forEach(function(data){
+					var freq = tileFrequency[data.hex];
+					for (var i = 0; i != 8; i++) {
+						for (var j = 0; j != 8; j++) {
+							mergedTile[i][j] += data.bits[i][j];
+						}					
+					}					
 				});
 				
-				return destFrame;
+				// Converts the mergedTile to 1bpp
+				for (var i = 0; i != 8; i++) {
+					for (var j = 0; j != 8; j++) {
+						mergedTile[i][j] = TileSet.ditheredPixel(j, i, mergedTile[i][j] * 255 / totalFrequency);
+					}					
+				}
+				
+				var mergedTileHex = TileSet.tileToHex(mergedTile);
+				return tilesToMerge.reduce(function(o, data){
+					o[data.hex] = mergedTileHex;
+					return o;
+				}, o);
+			}, {});
+			
+			// Replace the tiles for their similars
+			converted.frames = originalVideo.frames.map(function(origFrame){
+				return {
+					number: origFrame.number,
+					tiles: origFrame.tiles.map(function(tile){
+						var t = mergedTiles[tile];
+						if (!t) {
+							throw new Error("Couldn't find replacement for " + tile)
+						}
+						return t;
+					})
+				};
 			});
+			
+			// Delegate to RepeatedTileEncoder the rest of the conversion process.
+			converted.frames = new TileSetEncoders.RepeatedTileEncoder().encode(converted).frames;
 		}		
 	});
 	
