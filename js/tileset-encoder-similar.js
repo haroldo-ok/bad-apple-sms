@@ -58,6 +58,56 @@
 			var dataForClustering = makeDataForClustering(_.keys(tileFrequency));
 			var clusters = progressiveKMeans(_.pluck(dataForClustering, 'data'), 2048)
 			
+			var mergedTiles = clusters.reduce(function(o, cluster){
+				var tilesToMerge = cluster.map(function(featureVector){
+					var data = {
+						bits: Util.inGroupsOf(featureVector.slice(0, 64), 8)
+					};
+					data.hex = TileSet.tileToHex(data.bits);
+					return data;						
+				});
+				var totalFrequency = tilesToMerge.reduce(function(t, data){ return t + tileFrequency[data.hex]; }, 0);
+				
+				// Creates a zeroed-out merged tile
+				var mergedTile = [];
+				for (var i = 0; i != 8; i++) {
+					mergedTile[i] = [];
+					for (var j = 0; j != 8; j++) {
+						mergedTile[i][j] = 0;
+					}					
+				}
+				
+				// Accumulates every tile into the merged one
+				tilesToMerge.forEach(function(data){
+					var freq = tileFrequency[data.hex];
+					for (var i = 0; i != 8; i++) {
+						for (var j = 0; j != 8; j++) {
+							mergedTile[i][j] += data.bits[i][j];
+						}					
+					}					
+				});
+				
+				// Converts the mergedTile to 1bpp
+				for (var i = 0; i != 8; i++) {
+					for (var j = 0; j != 8; j++) {
+						mergedTile[i][j] = TileSet.ditheredPixel(j, i, mergedTile[i][j] * 255 / totalFrequency);
+					}					
+				}
+				
+				var mergedTileHex = TileSet.tileToHex(mergedTile);
+				return tilesToMerge.reduce(function(o, data){
+					o[data.hex] = mergedTileHex;
+					return o;
+				}, o);
+			}, {});
+			
+			converted.frames = originalVideo.frames.map(function(origFrame){
+				var destFrame = {
+					number: origFrame.number,
+					tiles: []
+				};
+			});
+			
 			converted.frames = originalVideo.frames.map(function(origFrame){
 				
 				var destFrame = {
