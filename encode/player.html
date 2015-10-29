@@ -27,7 +27,7 @@
 
 	<script>
 		$(document).ready(function(){
-			var videoName = '../data/encoded-video-20x15-30fps.json';
+			var videoName = '../data/encoded-video-20x15-30fps.json';						
 		
 			$.ajax(videoName).then(function(json){			
 				window.originalVideo = json;
@@ -43,11 +43,10 @@
 				var ctx = videoOutput.getContext('2d');
 				var imgData = ctx.getImageData(0, 0, videoOutput.width, videoOutput.height);
 				
-				function drawFrame(frameNumber) {
-					var frame = originalVideo.frames[frameNumber],
-						w = videoOutput.width,
+				function renderSimpleFrame(frame) {
+					var w = videoOutput.width,
 						h = videoOutput.height;
-					
+
 					// Loop through rows of tiles
 					for (var ty = 0; ty != originalVideo.tileCountY; ty++) { 
 						// Loop through columns of tiles
@@ -72,10 +71,14 @@
 							}
 						}
 					}
-
+				}
+				
+				function drawFrame(frameNumber) {
+					renderFrame(originalVideo.frames[frameNumber]);
 					ctx.putImageData(imgData, 0, 0);
 				}
 				
+				var renderFrame = renderSimpleFrame;
 				var startTime = 0;
 				function requestFrame() {
 					if (!startTime) {
