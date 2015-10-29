@@ -92,8 +92,15 @@
 								for (var px = 0; px != 8; px++) { 
 									var x = tx * 8 + px,
 										y = ty * 8 + py,
+										fx = tileData.h ? 7 - px : px,
+										fy = tileData.v ? 7 - py : py,
 										ofs = (y * w + x) * 4,
-										color = tile[py][px] * 255;
+										color = tile[fy][fx] * 255;
+										
+									if (tileData.i) {
+										color = color ? 0 : 255;
+									}
+										
 									imgData.data[ofs] = color;
 									imgData.data[ofs + 1] = color;
 									imgData.data[ofs + 2] = color;
