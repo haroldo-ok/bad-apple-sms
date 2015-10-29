@@ -27,7 +27,9 @@
 
 	<script>
 		$(document).ready(function(){
-			$.ajax('../data/encoded-video-20x15-30fps.json').then(function(json){			
+			var videoName = '../data/encoded-video-20x15-30fps.json';
+		
+			$.ajax(videoName).then(function(json){			
 				window.originalVideo = json;
 				
 				var videoOutput = $('#video-output')[0];
