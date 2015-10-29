@@ -1,0 +1,105 @@
+ <!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Video encoder</title>
+
+	<link rel="stylesheet" type="text/css" href="encode.css">
+	<script src="../js/third-party/jquery-1.8.1.js" type="text/javascript"></script>
+	<script src="../js/third-party/base64.js" type="text/javascript"></script>
+	<script src="../js/third-party/underscore-min.js" type="text/javascript"></script>
+	<script src="../js/third-party/FileSaver.js" type="text/javascript"></script>
+	<script src="../js/third-party/clusterfck.js" type="text/javascript"></script>
+	<script src="../js/util.js" type="text/javascript"></script>
+	<script src="../js/tileset.js" type="text/javascript"></script>
+	<script src="../js/tileset-encoder.js" type="text/javascript"></script>
+	<script src="../js/tileset-encoder-repeated.js" type="text/javascript"></script>
+	<script src="../js/tileset-encoder-similar.js" type="text/javascript"></script>
+</head>
+
+<body class="loading" style="background: gray">
+	<div class="loading-messsage">Loading...</div>
+	
+	<div>
+		<button id="play-button">Play</button>
+		<canvas id="video-output" class="video-player"></canvas>
+	</div>
+
+	<script>
+		$(document).ready(function(){
+			var videoName = '../data/encoded-video-20x15-30fps.json';
+		
+			$.ajax(videoName).then(function(json){			
+				window.originalVideo = json;
+				
+				var videoOutput = $('#video-output')[0];
+				videoOutput.width = originalVideo.tileCountX * 8;
+				videoOutput.height = originalVideo.tileCountY * 8;
+				$(videoOutput).css({
+					width: videoOutput.width * 2,
+					width: videoOutput.height * 2
+				});
+				
+				var ctx = videoOutput.getContext('2d');
+				var imgData = ctx.getImageData(0, 0, videoOutput.width, videoOutput.height);
+				
+				function drawFrame(frameNumber) {
+					var frame = originalVideo.frames[frameNumber],
+						w = videoOutput.width,
+						h = videoOutput.height;
+					
+					// Loop through rows of tiles
+					for (var ty = 0; ty != originalVideo.tileCountY; ty++) { 
+						// Loop through columns of tiles
+						for (var tx = 0; tx != originalVideo.tileCountX; tx++) { 
+							// Gets current tile
+							var tileNumber = frame.map[ty][tx],
+								tile = TileSet.hexToTile(frame.tiles[tileNumber]);
+							
+							// Loop through rows of tile pixels
+							for (var py = 0; py != 8; py++) { 
+								// Loop through columns of tile pixels
+								for (var px = 0; px != 8; px++) { 
+									var x = tx * 8 + px,
+										y = ty * 8 + py,
+										ofs = (y * w + x) * 4,
+										color = tile[py][px] * 255;
+									imgData.data[ofs] = color;
+									imgData.data[ofs + 1] = color;
+									imgData.data[ofs + 2] = color;
+									imgData.data[ofs + 3] = 255;
+								}
+							}
+						}
+					}
+
+					ctx.putImageData(imgData, 0, 0);
+				}
+				
+				var startTime = 0;
+				function requestFrame() {
+					if (!startTime) {
+						startTime = new Date().getTime();
+					}									
+					
+					var delta = new Date().getTime() - startTime;
+					var frameNumber = Math.floor(delta * originalVideo.frameRate / 1000);
+					drawFrame(frameNumber);
+					
+					requestAnimationFrame(requestFrame);
+				}
+				
+				requestAnimationFrame(requestFrame);
+			
+				$('#play-button').click(function(){
+				
+				});
+			
+				$('body').removeClass('loading');
+			});
+						
+		});
+	</script>
+</body>
+
+</html> 
