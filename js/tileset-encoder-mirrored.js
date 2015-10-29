@@ -43,7 +43,9 @@
 					return candidate;
 				});
 				
-				convertedTileCache[hex] = _.min(candidates, 'hex');				
+				convertedTileCache[hex] = candidates.reduce(function(a, b){ 
+					return a.hex < b.hex ? a : b
+				});
 				return convertedTileCache[hex];
 			}
 			
@@ -57,6 +59,10 @@
 				var tileNumbers = {};
 				origFrame.tiles.forEach(function(encodedTile, index){
 					var convertedTile = convertTile(encodedTile);
+					if (!convertedTile || !convertedTile.hex) {
+						throw new Error('There was a problem with the tile.');
+					}
+					
 					var tileNumber = tileNumbers[convertedTile.hex];
 					if (_.isUndefined(tileNumber)) {
 						tileNumber = destFrame.tiles.length;

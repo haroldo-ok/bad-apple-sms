@@ -27,7 +27,8 @@
 
 	<script>
 		$(document).ready(function(){
-			var videoName = '../data/encoded-video-20x15-30fps.json';						
+			//var videoName = '../data/encoded-video-20x15-30fps.json';						
+			var videoName = '../data/encoded-video-20x15-30fps-mirrored-tiles.json';						
 		
 			$.ajax(videoName).then(function(json){			
 				window.originalVideo = json;
@@ -73,12 +74,42 @@
 					}
 				}
 				
+				function renderMirroredFrame(frame) {
+					var w = videoOutput.width,
+						h = videoOutput.height;
+
+					// Loop through rows of tiles
+					for (var ty = 0; ty != originalVideo.tileCountY; ty++) { 
+						// Loop through columns of tiles
+						for (var tx = 0; tx != originalVideo.tileCountX; tx++) { 
+							// Gets current tile
+							var tileData = frame.map[ty][tx],
+								tile = TileSet.hexToTile(frame.tiles[tileData.n]);
+							
+							// Loop through rows of tile pixels
+							for (var py = 0; py != 8; py++) { 
+								// Loop through columns of tile pixels
+								for (var px = 0; px != 8; px++) { 
+									var x = tx * 8 + px,
+										y = ty * 8 + py,
+										ofs = (y * w + x) * 4,
+										color = tile[py][px] * 255;
+									imgData.data[ofs] = color;
+									imgData.data[ofs + 1] = color;
+									imgData.data[ofs + 2] = color;
+									imgData.data[ofs + 3] = 255;
+								}
+							}
+						}
+					}
+				}
+				
 				function drawFrame(frameNumber) {
 					renderFrame(originalVideo.frames[frameNumber]);
 					ctx.putImageData(imgData, 0, 0);
 				}
 				
-				var renderFrame = renderSimpleFrame;
+				var renderFrame = renderMirroredFrame;
 				var startTime = 0;
 				function requestFrame() {
 					if (!startTime) {
