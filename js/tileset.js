@@ -40,6 +40,24 @@ var TileSet = {
 	ditheredPixel: function(x, y, color) {
 		var threshold = DITHER_THRESHOLDS_4x4[y & 0x03][x & 0x03];		
 		return color * 17 / 255 > threshold ? 1 : 0;
+	},
+	
+	flipH: function(tile) {
+		return tile.map(function(line){
+			return line.slice().reverse();
+		});
+	},
+	
+	flipV: function(tile) {
+		return tile.map(function(line){
+			return line.slice();
+		}).reverse();
+	},
+	
+	inverseColor: function(tile) {
+		return tile.map(function(line){
+			return line.map(function(pixel){ return pixel ? 0 : 1 });
+		});		
 	}
 }
 

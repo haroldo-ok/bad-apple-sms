@@ -15,6 +15,7 @@
 	<script src="../js/tileset-encoder.js" type="text/javascript"></script>
 	<script src="../js/tileset-encoder-repeated.js" type="text/javascript"></script>
 	<script src="../js/tileset-encoder-similar.js" type="text/javascript"></script>
+	<script src="../js/tileset-encoder-mirrored.js" type="text/javascript"></script>
 </head>
 
 <body class="loading">
@@ -32,7 +33,7 @@
 			});
 			
 			$('#encoding-button').click(function(){
-				var converted = new TileSetEncoders.SimilarTileEncoder().encode(originalVideo);
+				var converted = new TileSetEncoders.MirroredTileEncoder().encode(originalVideo);
 			
 				window.convertedVideo = converted;
 				console.info('Done!');
