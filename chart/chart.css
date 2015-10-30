@@ -1,0 +1,19 @@
+body.loading > div ,
+body > div.loading-messsage
+{
+	display: none;
+}
+
+body.loading > div.loading-messsage
+{
+	display: block;
+}
+
+canvas.video-player
+{
+	image-rendering: optimizeSpeed;
+	image-rendering: -moz-crisp-edges;
+	image-rendering: -webkit-optimize-contrast;
+	image-rendering: optimize-contrast;
+	-ms-interpolation-mode: nearest-neighbor;
+}
