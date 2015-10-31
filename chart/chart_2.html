@@ -21,7 +21,11 @@
 	<div class="loading-messsage">Loading...</div>
 	
 	<div>
+		<h1>Tile usage with idleness < 30</h1>
+		<dl id="merged-tile-usage" class="dl-horizontal"></dl>
+		
 		<div class="row">
+			<!--
 			<div class="col-md-6">
 				<h1>Tile usage with idleness < 30</h1>
 				<dl id="merged-tile-usage" class="dl-horizontal"></dl>
@@ -30,6 +34,7 @@
 				<h1>Raw tile usage</h1>
 				<dl id="direct-tile-usage" class="dl-horizontal"></dl>
 			</div>
+			-->
 		</div>
 
 		<table id="tile-count-table" class="table" style="max-width: 20em"></table>
@@ -39,8 +44,8 @@
 		$(document).ready(function(){
 			console.info('Loading video data.');
 
-			var fileName = '../data/encoded-video-20x15-30fps-mirrored-tiles-sample.json';
-			//var fileName = '../data/encoded-video-20x15-30fps-mirrored-tiles.json';
+			//var fileName = '../data/encoded-video-20x15-30fps-mirrored-tiles-sample.json';
+			var fileName = '../data/encoded-video-20x15-30fps-mirrored-tiles.json';
 			$.ajax(fileName).then(function(json){
 				window.originalVideo = json;
 				window.tileCounts = _.chain(originalVideo.frames).pluck('tiles').flatten().countBy().pairs().sortBy(1).reverse().value();
@@ -131,6 +136,7 @@
 					return template({data: reportData});
 				}
 				
+				/*
 				$('#direct-tile-usage').html(generateReport(directTileUsage, 
 					'<% data.forEach(function(tile){ %>' +
 						'<dt><%= tile.tile %></dt>' +
@@ -139,6 +145,7 @@
 						'<% }); %>' +
 					'<% }); %>'
 				));
+				*/
 				
 				$('#merged-tile-usage').html(generateReport(mergedTileUsage, 
 					'<% data.forEach(function(tile){ %>' +
