@@ -1,0 +1,159 @@
+ <!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Video statistics</title>
+
+	<link rel="stylesheet" type="text/css" href="../js/third-party/bootstrap/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="../js/third-party/bootstrap/css/bootstrap-theme.min.css">
+	<link rel="stylesheet" type="text/css" href="chart.css">
+	
+	<script src="../js/third-party/jquery-1.8.1.js" type="text/javascript"></script>
+	<script src="../js/third-party/base64.js" type="text/javascript"></script>
+	<script src="../js/third-party/underscore-min.js" type="text/javascript"></script>
+	<script src="../js/third-party/FileSaver.js" type="text/javascript"></script>
+	<script src="../js/third-party/clusterfck.js" type="text/javascript"></script>
+	<script src="../js/util.js" type="text/javascript"></script>
+	<script src="../js/tileset.js" type="text/javascript"></script>
+</head>
+
+<body class="loading">
+	<div class="loading-messsage">Loading...</div>
+	
+	<div>
+		<div class="row">
+			<div class="col-md-6">
+				<h1>Tile usage with idleness < 30</h1>
+				<dl id="merged-tile-usage" class="dl-horizontal"></dl>
+			</div>
+			<div class="col-md-6">
+				<h1>Raw tile usage</h1>
+				<dl id="direct-tile-usage" class="dl-horizontal"></dl>
+			</div>
+		</div>
+
+		<table id="tile-count-table" class="table" style="max-width: 20em"></table>
+	</div>
+
+	<script>
+		$(document).ready(function(){
+			console.info('Loading video data.');
+
+			var fileName = '../data/encoded-video-20x15-30fps-mirrored-tiles-sample.json';
+			//var fileName = '../data/encoded-video-20x15-30fps-mirrored-tiles.json';
+			$.ajax(fileName).then(function(json){
+				window.originalVideo = json;
+				window.tileCounts = _.chain(originalVideo.frames).pluck('tiles').flatten().countBy().pairs().sortBy(1).reverse().value();
+				
+				console.info('Computing direct tile usage.');
+				
+				var usageData = {
+					tileStats: {},
+					usage: []
+				};
+				
+				originalVideo.frames.forEach(function(frame){
+					frame.tiles.forEach(function(tile){
+						var ts = usageData.tileStats[tile];
+						
+						// If the tile went unused for one or more frames, then it got unloaded.
+						if (ts && (frame.number > ts.endFrame + 1)) {
+							ts = null;
+						}
+						
+						if (!ts) {
+							ts = {
+								tile: tile,
+								usageCount: 0,
+								startFrame: frame.number,
+								endFrame: frame.number
+							};
+							usageData.usage.push(ts);
+							usageData.tileStats[tile] = ts;
+						}
+						
+						ts.usageCount++;
+						ts.endFrame = frame.number;
+					});
+				});
+				
+				window.directTileUsage = usageData.usage;
+				
+				console.info('Computing merged tile usage.');
+				
+				var usageData = {
+					tileStats: {},
+					usage: []
+				};
+				
+				var MAX_TILE_IDLE_FRAMES = 30;
+				directTileUsage.forEach(function(directUsage){
+				
+					var ts = usageData.tileStats[directUsage.tile];
+					if (ts && directUsage.startFrame - ts.endFrame > MAX_TILE_IDLE_FRAMES) {
+						// Tile expired by idleness, then reloaded later
+						ts = null;
+					}
+					
+					if (!ts) {
+						ts = {
+							tile: directUsage.tile,
+							usageCount: 0,
+							startFrame: directUsage.startFrame,
+							endFrame: directUsage.endFrame
+						};
+						usageData.usage.push(ts);
+						usageData.tileStats[directUsage.tile] = ts;
+					}
+					
+					ts.usageCount += directUsage.endFrame - directUsage.startFrame + 1;
+					ts.endFrame = directUsage.endFrame;
+					ts.percentUsage = Math.floor(ts.usageCount * 100 / (ts.endFrame - ts.startFrame + 1));
+				
+				});
+				
+				window.mergedTileUsage = usageData.usage;
+				
+				console.info('Generating reports.');
+
+				function generateReport(usageData, templateText) {
+					var template = _.template(templateText);
+					var reportData = _.chain(usageData).groupBy('tile').pairs().map(function(pair){ 
+						return {
+							tile: pair[0], 
+							usage: pair[1], 
+							usageCount: pair[1].reduce(function(t, u){ 
+								return t + u.usageCount 
+							}, 0) 
+						};
+					}).sortBy('usageCount').reverse().value();
+					
+					return template({data: reportData});
+				}
+				
+				$('#direct-tile-usage').html(generateReport(directTileUsage, 
+					'<% data.forEach(function(tile){ %>' +
+						'<dt><%= tile.tile %></dt>' +
+						'<% tile.usage.forEach(function(usage){ %>' +
+							'<dd><%= usage.startFrame %> to <%= usage.endFrame %></dd>' +
+						'<% }); %>' +
+					'<% }); %>'
+				));
+				
+				$('#merged-tile-usage').html(generateReport(mergedTileUsage, 
+					'<% data.forEach(function(tile){ %>' +
+						'<dt><%= tile.tile %></dt>' +
+						'<% tile.usage.forEach(function(usage){ %>' +
+							'<dd><%= usage.startFrame %> to <%= usage.endFrame %>, <%= usage.percentUsage %>% use</dd>' +
+						'<% }); %>' +
+					'<% }); %>'
+				));
+
+				console.info('Done.');
+				$('body').removeClass('loading');
+			});
+		})
+	</script>
+</body>
+
+</html> 
