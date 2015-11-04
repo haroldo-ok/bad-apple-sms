@@ -57,9 +57,18 @@ var TileSet = {
 	},
 	
 	inverseColor: function(tile) {
-		return tile.map(function(line){
-			return line.map(function(pixel){ return pixel ? 0 : 1 });
-		});		
+		var output = new Array(tile.length);
+		for (var i = 0, h = output.length; i != h; i++) {
+			var line = tile[i];
+			var outLine = new Array(line.length);
+			
+			for (var j = 0, w = outLine.length; j != w; j++) {
+				outLine[j] = line[j] ? 0 : 1;
+			}
+			
+			output[i] = outLine;    
+		}
+		return output;
 	}
 }
 
