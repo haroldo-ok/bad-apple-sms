@@ -12,9 +12,11 @@ var DITHER_THRESHOLDS_4x4 = [
 var TileSet = {
 	tileToHex: function(tile) {
 		function bitsToHex(bits) {
-			return bits.reduce(function(n, pixel){
-				return n * 2 + (pixel ? 1 : 0);
-			}, 0).toString(16);
+			var n = 0;
+			for (var i = 0, l = bits.length; i != l; i++) {
+				n = (n << 1) + (bits[i] ? 1 : 0);
+			}
+			return n.toString(16);
 		}
 	
 		return tile.map(function(line){					
