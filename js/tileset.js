@@ -19,13 +19,13 @@ var TileSet = {
 			return n.toString(16);
 		}
 	
-		return tile.map(function(line){					
-			var s = bitsToHex(line.slice(0, 4)) + bitsToHex(line.slice(4, 8));
-			if (s.length != 2) {
-				throw new Error("Wrong length for " + line + ": " + s);
-			}
-			return s;
-		}).join('').toUpperCase();
+		var hexChars = [];
+		for (var i = 0, l = tile.length; i != l; i++) {
+			var line = tile[i];
+			hexChars.push(bitsToHex(line.slice(0, 4)));
+			hexChars.push(bitsToHex(line.slice(4, 8)));
+		}
+		return hexChars.join('').toUpperCase();
 	},
 	
 	hexToTile: function(hex) {
