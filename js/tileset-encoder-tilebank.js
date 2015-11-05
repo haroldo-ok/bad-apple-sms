@@ -20,9 +20,47 @@
 					.pluck('tiles').flatten().countBy().pairs()
 					.filter(function(pair){ return pair[1] > 1 }).pluck(0)
 					.sort().value();
+					
+			var indexOfTiles = converted.tileBank.reduce(function(o, tile, idx){ 
+				o[tile] = idx; 
+				return o; 
+			}, {});
 			
-			converted.frames = firstStepEncoding.frames;
-		}		
+			converted.frames = firstStepEncoding.frames.map(function(origFrame){
+				var destFrame = _.pick(origFrame, 'number');
+				
+				origFrame.tiles.forEach(function(tile){
+					var bankTileNum = indexOfTiles[tile];
+					if (_.isNumber(bankTileNum)) {
+						if (!destFrame.tilesFromBank) {
+							destFrame.tilesFromBank = [];
+						}
+						
+						destFrame.tilesFromBank.push({
+							orig: bankTileNum
+						});
+					} else {
+						if (!destFrame.tilesToStream) {
+							destFrame.tilesToStream = [];
+						}
+
+						destFrame.tilesToStream.push({
+							tile: tile
+						});
+					}
+				});
+				
+				return destFrame;
+			});
+		},
+		
+		stats: function(converted) {
+			var stats = {
+				frameCount: converted.frames.length
+			};
+			
+			return stats;
+		}
 	});
 	
 	window.TileSetEncoders.register('TileBankTileEncoder', TileBankTileEncoder);
