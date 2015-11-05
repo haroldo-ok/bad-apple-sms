@@ -45,9 +45,11 @@ var TileSet = {
 	},
 	
 	flipH: function(tile) {
-		return tile.map(function(line){
-			return line.slice().reverse();
-		});
+		var output = new Array(tile.length);
+		for (var i = 0, l = tile.length; i != l; i++) {
+			output[i] = tile[i].slice().reverse();
+		}
+		return output;
 	},
 	
 	flipV: function(tile) {
