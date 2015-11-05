@@ -11,9 +11,16 @@
 		},
 		
 		doEncoding: function(converted, originalVideo) {
-			converted.format = 'STREAM_TILE_MAPVH';
+			converted.format = 'TILEBANK_MAPVH';
 
 			var firstStepEncoding = new TileSetEncoders.MirroredTileEncoder().encode(originalVideo);
+			
+			// The tileBank contains the tiles that are used more than once; the others become part of the video stream.
+			converted.tileBank = _.chain(firstStepEncoding.frames)
+					.pluck('tiles').flatten().countBy().pairs()
+					.filter(function(pair){ return pair[1] > 1 }).pluck(0)
+					.sort().value();
+			
 			converted.frames = firstStepEncoding.frames;
 		}		
 	});
