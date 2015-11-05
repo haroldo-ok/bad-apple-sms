@@ -12,18 +12,20 @@ var DITHER_THRESHOLDS_4x4 = [
 var TileSet = {
 	tileToHex: function(tile) {
 		function bitsToHex(bits) {
-			return bits.reduce(function(n, pixel){
-				return n * 2 + (pixel ? 1 : 0);
-			}, 0).toString(16);
+			var n = 0;
+			for (var i = 0, l = bits.length; i != l; i++) {
+				n = (n << 1) + (bits[i] ? 1 : 0);
+			}
+			return n.toString(16);
 		}
 	
-		return tile.map(function(line){					
-			var s = bitsToHex(line.slice(0, 4)) + bitsToHex(line.slice(4, 8));
-			if (s.length != 2) {
-				throw new Error("Wrong length for " + line + ": " + s);
-			}
-			return s;
-		}).join('').toUpperCase();
+		var hexChars = [];
+		for (var i = 0, l = tile.length; i != l; i++) {
+			var line = tile[i];
+			hexChars.push(bitsToHex(line.slice(0, 4)));
+			hexChars.push(bitsToHex(line.slice(4, 8)));
+		}
+		return hexChars.join('').toUpperCase();
 	},
 	
 	hexToTile: function(hex) {
@@ -43,9 +45,11 @@ var TileSet = {
 	},
 	
 	flipH: function(tile) {
-		return tile.map(function(line){
-			return line.slice().reverse();
-		});
+		var output = new Array(tile.length);
+		for (var i = 0, l = tile.length; i != l; i++) {
+			output[i] = tile[i].slice().reverse();
+		}
+		return output;
 	},
 	
 	flipV: function(tile) {
@@ -55,9 +59,18 @@ var TileSet = {
 	},
 	
 	inverseColor: function(tile) {
-		return tile.map(function(line){
-			return line.map(function(pixel){ return pixel ? 0 : 1 });
-		});		
+		var output = new Array(tile.length);
+		for (var i = 0, h = output.length; i != h; i++) {
+			var line = tile[i];
+			var outLine = new Array(line.length);
+			
+			for (var j = 0, w = outLine.length; j != w; j++) {
+				outLine[j] = line[j] ? 0 : 1;
+			}
+			
+			output[i] = outLine;    
+		}
+		return output;
 	}
 }
 

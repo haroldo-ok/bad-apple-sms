@@ -2,6 +2,8 @@
 
 (function(){
 	
+	var BOOLEAN_3_BIT_COMBINATIONS = Util.cartesianProductOf([false, true], [false, true], [false, true]);
+	
 	function MirroredTileEncoder() {		
 	}
 	
@@ -20,7 +22,7 @@
 				}
 				
 				var originalTile = TileSet.hexToTile(hex);
-				var candidates = Util.cartesianProductOf([false, true], [false, true], [false, true]).map(function(tuple){
+				var candidates = BOOLEAN_3_BIT_COMBINATIONS.map(function(tuple){
 					var candidate = {};
 					var transformedTile = Util.deepClone(originalTile);
 					
