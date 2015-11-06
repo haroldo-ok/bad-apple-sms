@@ -100,6 +100,15 @@
 					}					
 				});
 				
+				// Update the map indexes
+				destFrame.map = origFrame.map.map(function(line){
+					return line.map(function(cell){
+						var tile = origFrame.tiles[cell.n];
+						var tileNumber = allocTileIndex[tile].number;
+						return _.extend({n: tileNumber}, _.pick(cell, 'v', 'h', 'i'));
+					});
+				});
+				
 				// Increment the age of the tiles
 				allocatedTiles.forEach(function(alloc){
 					alloc.age++;
