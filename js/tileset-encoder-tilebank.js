@@ -119,9 +119,28 @@
 		},
 		
 		stats: function(converted) {
+			function add(a, b) {
+				return a + b;
+			}
+			
+			function sumLengths(array, attrName) {
+				return _.chain(array).pluck(attrName).compact().pluck('length').reduce(add, 0).value();
+			}
+			
+			var tileCounts = _.chain(converted.frames).map(function(f){ return (f.tilesFromBank || []).length + (f.tilesToStream || []).length }).value();
+			
 			var stats = {
-				frameCount: converted.frames.length
+				frameCount: converted.frames.length,
+				maxTilesToLoadPerFrame: _.max(tileCounts),
+				avgTilesToLoadPerFrame: Math.round(tileCounts.reduce(add, 0) / converted.frames.length),
+				totalTileLoadsFromBank: sumLengths(converted.frames, 'tilesFromBank'),
+				totalTilesToStream: sumLengths(converted.frames, 'tilesToStream'),
 			};
+			
+			stats.estimatedMaximumSize = converted.tileBank.length * 8 + // Supposes there's no compression
+					stats.totalTileLoadsFromBank * (2 + 2) + // Tile # from bank + VRAM tile #
+					stats.totalTilesToStream * (8 + 2) + // Tile data (8 bytes) + VRAM tile #
+					stats.frameCount * converted.tileCountX * converted.tileCountY * 2; // tile number + attrs
 			
 			return stats;
 		}
