@@ -2,6 +2,8 @@
 
 (function(){
 	
+	var MAX_TILES_TO_USE = 448;
+	
 	function TileBankTileEncoder() {		
 	}
 	
@@ -26,28 +28,81 @@
 				return o; 
 			}, {});
 			
+			var allocatedTiles = [];
+			for (var i = 0; i != MAX_TILES_TO_USE; i++) {
+				allocatedTiles.push({
+					number: i,
+					tile: null,
+					age: 0
+				});
+			}
+			
 			converted.frames = firstStepEncoding.frames.map(function(origFrame){
 				var destFrame = _.pick(origFrame, 'number');
 				
-				origFrame.tiles.forEach(function(tile){
-					var bankTileNum = indexOfTiles[tile];
-					if (_.isNumber(bankTileNum)) {
-						if (!destFrame.tilesFromBank) {
-							destFrame.tilesFromBank = [];
-						}
-						
-						destFrame.tilesFromBank.push({
-							orig: bankTileNum
-						});
-					} else {
-						if (!destFrame.tilesToStream) {
-							destFrame.tilesToStream = [];
-						}
-
-						destFrame.tilesToStream.push({
-							tile: tile
-						});
+				var replacementPriority = allocatedTiles.slice().sort(function(a, b){
+					// Empty tiles come first
+					if (!a.tile && b.tile) {
+						return -1;
+					} else if (a.tile && !b.tile) {
+						return 1;
 					}
+					
+					// Then the non-empty, by decreasing age
+					return b.age - a.age;
+				});					
+				
+				var allocTileIndex = _.indexBy(allocatedTiles, 'tile');
+				
+				origFrame.tiles.forEach(function(tile){
+					var alloc = allocTileIndex[tile];
+					if (alloc) {
+						// Tile already loaded; reset aging
+						alloc.age = 0;
+						replacementPriority = _.without(replacementPriority, alloc);
+					} else {
+						// Tile is not loaded; find which tile should be replaced
+						var toReplace = replacementPriority.shift();
+						
+						// Remove the old, put the new, update indexes
+						delete allocTileIndex[toReplace.tile];
+						allocTileIndex[tile] = toReplace;
+						_.extend(toReplace, {
+							tile: tile,
+							age: 0
+						});
+						
+						// Where will the tile come from?
+						var bankTileNum = indexOfTiles[tile];
+						if (_.isNumber(bankTileNum)) {
+							// Tile comes from tileBank
+							
+							if (!destFrame.tilesFromBank) {
+								destFrame.tilesFromBank = [];
+							}
+							
+							destFrame.tilesFromBank.push({
+								orig: bankTileNum,
+								dest: toReplace.number
+							});
+						} else {
+							// Tile is streamed along with the frame
+							
+							if (!destFrame.tilesToStream) {
+								destFrame.tilesToStream = [];
+							}
+
+							destFrame.tilesToStream.push({
+								tile: tile,
+								dest: toReplace.number
+							});
+						}						
+					}					
+				});
+				
+				// Increment the age of the tiles
+				allocatedTiles.forEach(function(alloc){
+					alloc.age++;
 				});
 				
 				return destFrame;
