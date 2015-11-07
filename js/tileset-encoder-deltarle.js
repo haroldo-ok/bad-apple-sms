@@ -8,6 +8,8 @@
 	var REPEAT = 'r';
 	// Skip the next n bytes
 	var SKIP = 's';
+	// Sets the top bits of the length of the next command
+	var BOOST_LENGTH = 'b';
 	// End this frame
 	var END = 'e';
 	
@@ -41,7 +43,7 @@
 						var attrs = _.pick(cell, 'v', 'h', 'i');
 						// Tells if the 9th bit of the tile number is on
 						if (cell.n & 0x100) {
-							attrs.s = 1;
+							attrs.t = 1;
 						}
 						return attrs;
 					})
@@ -52,6 +54,19 @@
 			
 			function encodeDeltaRle(previous, current) {
 				var commands = [];
+				
+				function addCommand(command, len) {
+					if (len > MAX_RLE_LENGTH) {
+						commands.push({
+							c: BOOST_LENGTH,
+							l: Math.floor(len / MAX_RLE_LENGTH)
+						});								
+					}					
+					commands.push({
+						c: command,
+						l: len % MAX_RLE_LENGTH
+					});								
+				}
 				
 				var pos = 0;
 				while (pos < current.length) {
@@ -71,11 +86,8 @@
 						
 						continue;
 					} else if (unchangedPos > pos) {
-						var len = Math.min(unchangedPos - pos, MAX_RLE_LENGTH);
-						commands.push({
-							c: SKIP,
-							l: len
-						});			
+						var len = unchangedPos - pos;
+						addCommand(SKIP, len);
 						pos += len;
 
 						continue;
@@ -84,17 +96,15 @@
 					// Checks for repeated tiles
 					
 					var repeatedPos = pos;
-					while (repeatedPos < current.length && repeatedPos - pos < MAX_RLE_LENGTH &&
+					while (repeatedPos < current.length && 
 							_.isEqual(current[pos], current[repeatedPos])) {
 						repeatedPos++;
 					}
 					
 					var len = repeatedPos - pos;
 					if (len > 1) {
-						commands.push({
-							c: REPEAT,
-							l: len
-						});			
+						addCommand(REPEAT, len);
+						commands.push(current[pos]);									
 						pos += len;
 						
 						continue;
@@ -103,18 +113,14 @@
 					// Checks for non-repeated tiles
 					
 					var verbatimPos = pos + 1;
-					while (verbatimPos < current.length && verbatimPos - pos < MAX_RLE_LENGTH &&
+					while (verbatimPos < current.length && 
 							!_.isEqual(previous[verbatimPos], current[verbatimPos]) &&
 							!_.isEqual(current[verbatimPos - 1], current[verbatimPos])) {
 						verbatimPos++;
 					}
 					
 					var len = verbatimPos - pos;
-					commands.push({
-						c: VERBATIM,
-						l: len
-					});			
-					
+					addCommand(VERBATIM, len);					
 					while (pos != verbatimPos) {
 						commands.push(current[pos]);									
 						pos++;						
