@@ -161,9 +161,11 @@
 					
 					var delta = new Date().getTime() - startTime;
 					var frameNumber = Math.floor(delta * originalVideo.frameRate / 1000);
-					drawFrame(frameNumber);
+					drawFrame(Math.min(frameNumber, originalVideo.frames.length - 1));
 					
-					requestAnimationFrame(requestFrame);
+					if (frameNumber < originalVideo.frames.length) {
+						requestAnimationFrame(requestFrame);
+					}
 				}
 				
 				requestAnimationFrame(requestFrame);
