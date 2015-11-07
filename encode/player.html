@@ -29,7 +29,8 @@
 		$(document).ready(function(){
 			//var videoName = '../data/encoded-video-20x15-30fps.json';						
 			//var videoName = '../data/encoded-video-20x15-30fps-mirrored-tiles.json';						
-			var videoName = '../data/encoded-video-20x15-30fps-tilebank.json';
+			//var videoName = '../data/encoded-video-20x15-30fps-tilebank.json';
+			var videoName = '../data/encoded-video-20x15-30fps-deltarle.json';
 		
 			$.ajax(videoName).then(function(json){			
 				window.originalVideo = json;
@@ -147,12 +148,114 @@
 					renderTileBankFrame.prevFrameNumber = frame.number;
 				}
 				
+				function renderDeltaRleFrame(frame) {
+					if (!renderDeltaRleFrame.prevFrame || renderDeltaRleFrame.prevFrame > frame.number) {
+						renderDeltaRleFrame.prevFrameNumber = 0;						
+						renderDeltaRleFrame.map = {
+							tiles: _.times(originalVideo.tileCountX * originalVideo.tileCountY, _.constant({n: 0})),
+							attrs: _.times(originalVideo.tileCountX * originalVideo.tileCountY, _.constant({}))
+						};
+					}
+					
+					if (renderDeltaRleFrame.prevFrameNumber == frame.number) {
+						// Didn't change frame; nothing to do.
+						return;
+					}
+					
+					// Copy the next n bytes, unmodified
+					var VERBATIM = 'v';
+					// Repeat the next byte n times
+					var REPEAT = 'r';
+					// Skip the next n bytes
+					var SKIP = 's';
+					// Sets the top bits of the length of the next command
+					var BOOST_LENGTH = 'b';
+					// End this frame
+					var END = 'e';
+					var MAX_RLE_LENGTH = 64;
+					
+					function decodeDeltaRle(buffer, commands) {
+						var bufPos = 0, cmdPos = 0, boost = 0;
+						while (commands[cmdPos].c != END) {
+							var cmd = commands[cmdPos],
+								len = cmd.l + boost;
+								
+							switch (cmd.c) {
+							
+								case VERBATIM: {
+									// Copies the next n commands
+									cmdPos++;
+									for (var i = 0; i != len; i++) {
+										buffer[bufPos] = commands[cmdPos];
+										bufPos++; cmdPos++;									
+									}
+									boost = 0;
+									break;
+								}
+								
+								case REPEAT: {
+									// Copies the next command n times
+									cmdPos++;
+									for (var i = 0; i != len; i++) {
+										buffer[bufPos] = commands[cmdPos];
+										bufPos++; 
+									}
+									cmdPos++;
+									boost = 0;
+									break;
+								}
+
+								case SKIP: {
+									// Keeps unchanged the next n bufer positions
+									cmdPos++;
+									bufPos += len;
+									boost = 0;
+									break;
+								}
+
+								case BOOST_LENGTH: {
+									// Sets the top bits of the length of the next command
+									cmdPos++;
+									boost = cmd.l * MAX_RLE_LENGTH;
+									break;
+								}
+								
+								default: {
+									buffer[bufPos] = commands[cmdPos];
+									bufPos++; cmdPos++;
+									boost = 0;
+								}
+							}
+						}						
+					}
+					
+					for (var i = renderDeltaRleFrame.prevFrameNumber; i != frame.number; i++) {
+						var tmpFrame = originalVideo.frames[i];
+						decodeDeltaRle(renderDeltaRleFrame.map.tiles, tmpFrame.map.tiles);
+						decodeDeltaRle(renderDeltaRleFrame.map.attrs, tmpFrame.map.attrs);
+						
+						var flatMap = _.zip(renderDeltaRleFrame.map.tiles, renderDeltaRleFrame.map.attrs).map(function(pair){ 
+							return _.extend({
+								n: pair[0].n + (pair[1].t << 8 || 0) 
+							}, _.pick(pair[1], 'v', 'h', 'i'));
+						});
+						
+						renderTileBankFrame(_.chain(tmpFrame).omit('map').extend({
+							map: Util.inGroupsOf(flatMap, originalVideo.tileCountX)
+						}).value());
+					}
+					
+//					renderTileBankFrame();
+					
+					renderDeltaRleFrame.prevFrameNumber = frame.number;
+				}
+				
 				function drawFrame(frameNumber) {
 					renderFrame(originalVideo.frames[frameNumber]);
 					ctx.putImageData(imgData, 0, 0);
 				}
 				
-				var renderFrame = renderTileBankFrame;
+				var renderFrame = renderDeltaRleFrame;
 				var startTime = 0;
 				function requestFrame() {
 					if (!startTime) {
