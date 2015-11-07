@@ -1,0 +1,83 @@
+ <!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Video encoder</title>
+
+	<link rel="stylesheet" type="text/css" href="encode.css">
+	<script src="../js/third-party/jquery-1.8.1.js" type="text/javascript"></script>
+	<script src="../js/third-party/base64.js" type="text/javascript"></script>
+	<script src="../js/third-party/underscore-min.js" type="text/javascript"></script>
+	<script src="../js/third-party/FileSaver.js" type="text/javascript"></script>
+	<script src="../js/third-party/clusterfck.js" type="text/javascript"></script>
+	<script src="../js/util.js" type="text/javascript"></script>
+	<script src="../js/tileset.js" type="text/javascript"></script>
+	<script src="../js/tileset-encoder.js" type="text/javascript"></script>
+	<script src="../js/tileset-encoder-repeated.js" type="text/javascript"></script>
+	<script src="../js/tileset-encoder-similar.js" type="text/javascript"></script>
+	<script src="../js/tileset-encoder-mirrored.js" type="text/javascript"></script>
+	<script src="../js/tileset-encoder-tilebank.js" type="text/javascript"></script>
+	<script src="../js/tileset-encoder-deltarle.js" type="text/javascript"></script>
+</head>
+
+<body class="loading">
+	<div class="loading-messsage">Loading...</div>
+	
+	<div>
+		<button id="encoding-button">Start encoding</button>
+	</div>
+
+	<script>
+		$(document).ready(function(){
+			$.ajax('../data/encoded-video-20x15-30fps-deltarle.json').done(function(json){
+				window.originalVideo = json;
+				$('body').removeClass('loading');
+			}).error(function(request, state, e){
+				console.error(e);
+				throw new Error('Error loading JSON');
+			});
+			
+			$('#encoding-button').click(function(){
+				var outBytes = [];
+				
+				function writeByte(byteVal) {
+					outBytes.push(byteVal & 0xFF);
+				}
+				
+				function writeWord(word) {
+					// LSB first
+					outBytes.push(word & 0xFF);
+					outBytes.push((word & 0xFF00) >> 8);
+				}
+				
+				// Header
+				writeByte('V'.charCodeAt(0));
+				writeByte(1); // Version number
+				writeByte(originalVideo.tileCountX);
+				writeByte(originalVideo.tileCountY);
+				writeByte(originalVideo.frameRate);
+				
+				// Tile Bank
+				writeWord(originalVideo.tileBank.length);
+				originalVideo.tileBank.forEach(function(hex){
+					var inGroupsOfTwo = hex.split(/(..)/).filter(Boolean);
+					inGroupsOfTwo.forEach(function(hexByte){
+						writeByte(parseInt(hexByte, 16));
+					});
+				});
+			
+				console.log(outBytes);
+				console.info('Done!');
+
+				// Save encoded video as JSON
+				/*
+				var json = JSON.stringify(converted, null, '\t');
+				var blob = new Blob([json], {type: "text/plain;charset=utf-8"});
+				saveAs(blob, "encoded-video-" + converted.tileCountX + 'x' + converted.tileCountY + '-' + converted.frameRate + 'fps.json');
+				*/
+			});
+		})
+	</script>
+</body>
+
+</html> 
