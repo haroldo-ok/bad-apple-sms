@@ -232,20 +232,18 @@
 					for (var i = renderDeltaRleFrame.prevFrameNumber; i != frame.number; i++) {
 						var tmpFrame = originalVideo.frames[i];
 						decodeDeltaRle(renderDeltaRleFrame.map.tiles, tmpFrame.map.tiles);
-						decodeDeltaRle(renderDeltaRleFrame.map.attrs, tmpFrame.map.attrs);
-						
-						var flatMap = _.zip(renderDeltaRleFrame.map.tiles, renderDeltaRleFrame.map.attrs).map(function(pair){ 
-							return _.extend({
-								n: pair[0].n + (pair[1].t << 8 || 0) 
-							}, _.pick(pair[1], 'v', 'h', 'i'));
-						});
-						
-						renderTileBankFrame(_.chain(tmpFrame).omit('map').extend({
-							map: Util.inGroupsOf(flatMap, originalVideo.tileCountX)
-						}).value());
+						decodeDeltaRle(renderDeltaRleFrame.map.attrs, tmpFrame.map.attrs);						
 					}
 					
-//					renderTileBankFrame();
+					var flatMap = _.zip(renderDeltaRleFrame.map.tiles, renderDeltaRleFrame.map.attrs).map(function(pair){ 
+						return _.extend({
+							n: pair[0].n + (pair[1].t << 8 || 0) 
+						}, _.pick(pair[1], 'v', 'h', 'i'));
+					});
+					
+					renderTileBankFrame(_.chain(tmpFrame).omit('map').extend({
+						map: Util.inGroupsOf(flatMap, originalVideo.tileCountX)
+					}).value());
 					
 					renderDeltaRleFrame.prevFrameNumber = frame.number;
 				}
