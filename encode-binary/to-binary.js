@@ -58,6 +58,7 @@ originalVideo.frames.forEach(function(frame){
 	wr.writeChar('F');
 	
 	// Tiles from tilebank
+	
 	if (frame.tilesFromBank) {
 		frame.tilesFromBank.forEach(function(tile){
 			wr.writeWord(tile.dest).writeWord(tile.orig);
@@ -65,15 +66,24 @@ originalVideo.frames.forEach(function(frame){
 	}
 	wr.writeWord(TILEDATA_TERMINATOR);
 
-	// Unique tiles included as part of the stream
+	// Unique tiles included as part of the stream, first all the destination slots, then the tiles, in order to achieve better compression.
+	
 	if (frame.tilesToStream) {
 		frame.tilesToStream.forEach(function(tile){
-			wr.writeWord(tile.dest).writeHex(tile.tile);
+			wr.writeWord(tile.dest);
+		});
+	}
+	wr.writeWord(TILEDATA_TERMINATOR);
+	
+	if (frame.tilesToStream) {
+		frame.tilesToStream.forEach(function(tile){
+			wr.writeHex(tile.tile);
 		});
 	}
 	wr.writeWord(TILEDATA_TERMINATOR);
 	
 	// Map Delta-RLE
+	
 	outputMapCommands(frame.map.tiles, function(command){
 		return command.n;
 	});
