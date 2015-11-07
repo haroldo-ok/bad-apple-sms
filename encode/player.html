@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="UTF-8">
-	<title>Video encoder</title>
+	<title>Video player</title>
 
 	<link rel="stylesheet" type="text/css" href="encode.css">
 	<script src="../js/third-party/jquery-1.8.1.js" type="text/javascript"></script>
@@ -28,7 +28,8 @@
 	<script>
 		$(document).ready(function(){
 			//var videoName = '../data/encoded-video-20x15-30fps.json';						
-			var videoName = '../data/encoded-video-20x15-30fps-mirrored-tiles.json';						
+			//var videoName = '../data/encoded-video-20x15-30fps-mirrored-tiles.json';						
+			var videoName = '../data/encoded-video-20x15-30fps-tilebank.json';
 		
 			$.ajax(videoName).then(function(json){			
 				window.originalVideo = json;
@@ -110,13 +111,48 @@
 						}
 					}
 				}
+
+				function renderTileBankFrame(frame) {
+					if (!renderTileBankFrame.prevFrame || renderTileBankFrame.prevFrame > frame.number) {
+						renderTileBankFrame.prevFrameNumber = 0;
+						renderTileBankFrame.loadedTiles = [];
+					}
+					
+					if (renderTileBankFrame.prevFrameNumber == frame.number) {
+						// Didn't change frame; nothing to do.
+						return;
+					}
+					
+					for (var i = renderTileBankFrame.prevFrameNumber; i != frame.number; i++) {
+						var tmpFrame = originalVideo.frames[i];
+						
+						if (tmpFrame.tilesFromBank) {
+							tmpFrame.tilesFromBank.forEach(function(info){
+								renderTileBankFrame.loadedTiles[info.dest] = originalVideo.tileBank[info.orig];
+							});
+						}
+						
+						if (tmpFrame.tilesToStream) {
+							tmpFrame.tilesToStream.forEach(function(info){
+								renderTileBankFrame.loadedTiles[info.dest] = info.tile;
+							});
+						}
+					}
+					
+					renderMirroredFrame({
+						tiles: renderTileBankFrame.loadedTiles,
+						map: frame.map
+					});
+					
+					renderTileBankFrame.prevFrameNumber = frame.number;
+				}
 				
 				function drawFrame(frameNumber) {
 					renderFrame(originalVideo.frames[frameNumber]);
 					ctx.putImageData(imgData, 0, 0);
 				}
 				
-				var renderFrame = renderMirroredFrame;
+				var renderFrame = renderTileBankFrame;
 				var startTime = 0;
 				function requestFrame() {
 					if (!startTime) {
