@@ -56,7 +56,7 @@
 				var commands = [];
 				
 				function addCommand(command, len) {
-					if (len > MAX_RLE_LENGTH) {
+					if (len >= MAX_RLE_LENGTH) {
 						commands.push({
 							c: BOOST_LENGTH,
 							l: Math.floor(len / MAX_RLE_LENGTH)
