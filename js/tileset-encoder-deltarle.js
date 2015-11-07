@@ -56,6 +56,7 @@
 				var pos = 0;
 				while (pos < current.length) {
 					// Checks how many tiles haven't changed since last frame
+					
 					var unchangedPos = pos;
 					while (unchangedPos < current.length && 
 							_.isEqual(previous[unchangedPos], current[unchangedPos])) {
@@ -80,12 +81,44 @@
 						continue;
 					}
 					
+					// Checks for repeated tiles
+					
+					var repeatedPos = pos;
+					while (repeatedPos < current.length && repeatedPos - pos < MAX_RLE_LENGTH &&
+							_.isEqual(current[pos], current[repeatedPos])) {
+						repeatedPos++;
+					}
+					
+					var len = repeatedPos - pos;
+					if (len > 1) {
+						commands.push({
+							c: REPEAT,
+							l: len
+						});			
+						pos += len;
+						
+						continue;
+					}			
+
+					// Checks for non-repeated tiles
+					
+					var verbatimPos = pos + 1;
+					while (verbatimPos < current.length && verbatimPos - pos < MAX_RLE_LENGTH &&
+							!_.isEqual(previous[verbatimPos], current[verbatimPos]) &&
+							!_.isEqual(current[verbatimPos - 1], current[verbatimPos])) {
+						verbatimPos++;
+					}
+					
+					var len = verbatimPos - pos;
 					commands.push({
 						c: VERBATIM,
-						l: 1
-					});									
-					commands.push(current[pos]);									
-					pos++;
+						l: len
+					});			
+					
+					while (pos != verbatimPos) {
+						commands.push(current[pos]);									
+						pos++;						
+					}
 				}
 				
 				// Always add a 'end' command, if it isn't there already.
