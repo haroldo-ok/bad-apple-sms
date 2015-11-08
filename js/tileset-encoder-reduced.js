@@ -32,7 +32,7 @@
 		var clusters = [ data ];
 		while (clusters.length < maxGroups) {
 			clusters = clusters.reduce(function(a, cluster){
-				var step = clusterfck.kmeans(cluster, 2, "manhattan", null, null, 2);
+				var step = clusterfck.kmeans(cluster, 5, "manhattan", null, null, 4);
 				return a.concat(step);
 			}, []);
 		}
@@ -65,7 +65,7 @@
 			}, {});
 			
 			var dataForClustering = makeDataForClustering(_.keys(tileFrequency));
-			var clusters = progressiveKMeans(_.pluck(dataForClustering, 'data'), 2048)
+			var clusters = progressiveKMeans(_.pluck(dataForClustering, 'data'), ReducedTileEncoder.reduceTileCountTo)
 			
 			var mergedTiles = clusters.reduce(function(o, cluster){
 				var tilesToMerge = cluster.map(function(featureVector){

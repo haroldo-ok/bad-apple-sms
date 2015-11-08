@@ -39,7 +39,7 @@
 			});
 			
 			$('#encoding-button').click(function(){
-				TileSetEncoders.ReducedTileEncoder.reduceTileCountTo = 8192;
+				TileSetEncoders.ReducedTileEncoder.reduceTileCountTo = 24 * 1024;
 				var converted = new TileSetEncoders.DeltaRleTileEncoder().encode(originalVideo);
 			
 				window.convertedVideo = converted;
