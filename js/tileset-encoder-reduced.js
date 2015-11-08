@@ -29,7 +29,7 @@
 			
 			var byPopularity = _.chain(tileFrequency).pairs().sortBy(1).pluck(0).reverse().value();
 			var encodingParams = [
-				{stepX: 1, stepY: 1, divisor: 1, percent: 100},
+				{stepX: 2, stepY: 2, divisor: 1.5, percent: 100},
 //				{stepX: 4, stepY: 4, divisor: 7, percent: 100},
 			];
 			
@@ -68,45 +68,15 @@
 			}).values().map(function(cluster){
 				return _.pluck(cluster, 'hex');
 			}).value();
-			
+
+			// Merges together the tiles from each cluster
 			var mergedTiles = clusters.reduce(function(o, cluster){
-				var tilesToMerge = cluster.map(function(hex){
-					return {
-						hex: hex,
-						bits: TileSet.hexToTile(hex)
-					};						
-				});
-				var totalFrequency = tilesToMerge.reduce(function(t, data){ return t + tileFrequency[data.hex]; }, 0);
-				
-				// Creates a zeroed-out merged tile
-				var mergedTile = [];
-				for (var i = 0; i != 8; i++) {
-					mergedTile[i] = [];
-					for (var j = 0; j != 8; j++) {
-						mergedTile[i][j] = 0;
-					}					
-				}
-				
-				// Accumulates every tile into the merged one
-				tilesToMerge.forEach(function(data){
-					var freq = tileFrequency[data.hex];
-					for (var i = 0; i != 8; i++) {
-						for (var j = 0; j != 8; j++) {
-							mergedTile[i][j] += data.bits[i][j];
-						}					
-					}					
+				var mergedTile = _.max(cluster, function(hex){
+					return tileFrequency[hex];
 				});
 				
-				// Converts the mergedTile to 1bpp
-				for (var i = 0; i != 8; i++) {
-					for (var j = 0; j != 8; j++) {
-						mergedTile[i][j] = TileSet.ditheredPixel(j, i, mergedTile[i][j] * 255 / totalFrequency);
-					}					
-				}
-				
-				var mergedTileHex = TileSet.tileToHex(mergedTile);
-				return tilesToMerge.reduce(function(o, data){
-					o[data.hex] = mergedTileHex;
+				return cluster.reduce(function(o, hex){
+					o[hex] = mergedTile;
 					return o;
 				}, o);
 			}, {});
