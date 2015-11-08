@@ -52,12 +52,43 @@
 			}).values().value();
 			
 			var mergedTiles = clusters.reduce(function(o, cluster){
-				var mergedTile = _.max(cluster, function(hex){
-					return tileFrequency[hex];
+				var tilesToMerge = cluster.map(function(hex){
+					return {
+						hex: hex,
+						bits: TileSet.hexToTile(hex)
+					};						
+				});
+				var totalFrequency = tilesToMerge.reduce(function(t, data){ return t + tileFrequency[data.hex]; }, 0);
+				
+				// Creates a zeroed-out merged tile
+				var mergedTile = [];
+				for (var i = 0; i != 8; i++) {
+					mergedTile[i] = [];
+					for (var j = 0; j != 8; j++) {
+						mergedTile[i][j] = 0;
+					}					
+				}
+				
+				// Accumulates every tile into the merged one
+				tilesToMerge.forEach(function(data){
+					var freq = tileFrequency[data.hex];
+					for (var i = 0; i != 8; i++) {
+						for (var j = 0; j != 8; j++) {
+							mergedTile[i][j] += data.bits[i][j];
+						}					
+					}					
 				});
 				
-				return cluster.reduce(function(o, hex){
-					o[hex] = mergedTile;
+				// Converts the mergedTile to 1bpp
+				for (var i = 0; i != 8; i++) {
+					for (var j = 0; j != 8; j++) {
+						mergedTile[i][j] = TileSet.ditheredPixel(j, i, mergedTile[i][j] * 255 / totalFrequency);
+					}					
+				}
+				
+				var mergedTileHex = TileSet.tileToHex(mergedTile);
+				return tilesToMerge.reduce(function(o, data){
+					o[data.hex] = mergedTileHex;
 					return o;
 				}, o);
 			}, {});
