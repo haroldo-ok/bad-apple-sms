@@ -1,43 +1,6 @@
 "use strict";
 
 (function(){
-	
-	function makeDataForClustering(hexTiles) {
-		var dataForClustering = hexTiles.map(function(tileHex){ 
-			var tileBits = TileSet.hexToTile(tileHex);
-			
-			var averaged = [];
-			for (var i = 0; i < 8; i += 2) {
-				for (var j = 0; j < 8; j += 2) {
-					var val = tileBits[i][j] +
-							tileBits[i + 1][j] +
-							tileBits[i][j + 1] +
-							tileBits[i + 1][j + 1];
-					
-					averaged.push(Math.floor(val));
-				}					
-			}
-			
-			var data = _.flatten(tileBits).concat(averaged);
-			return {
-				data: data,
-				hex: tileHex
-			}; 
-		}, {});
-		
-		return dataForClustering;
-	}
-	
-	function progressiveKMeans(data, maxGroups) {
-		var clusters = [ data ];
-		while (clusters.length < maxGroups) {
-			clusters = clusters.reduce(function(a, cluster){
-				var step = clusterfck.kmeans(cluster, 5, "manhattan", null, null, 4);
-				return a.concat(step);
-			}, []);
-		}
-		return clusters;
-	}
 
 	function ReducedTileEncoder() {		
 	}
@@ -65,8 +28,27 @@
 			}, {});
 			
 			var clusters = _.chain(tileFrequency).keys().groupBy(function(hex){ 
-				var pairsOfBits = Util.inGroupsOf(_.flatten(TileSet.hexToTile(hex)), 2);
-				return pairsOfBits.map(function(pair){ return pair[0] + pair[1] });
+				var tileBits = TileSet.hexToTile(hex),
+					averaged = [],
+					stepX = 4, 
+					stepY = 4,
+					divisor = 6;
+					
+				for (var i = 0; i < 8; i += stepY) {
+					for (var j = 0; j < 8; j += stepX) {
+						var val = 0;
+						
+						for (var k = 0; k != stepY; k++) {
+							for (var l = 0; l != stepX; l++) {
+								val += tileBits[i + k][j + l];
+							}							
+						}
+						
+						averaged.push(Math.round(val / divisor));
+					}					
+				}
+				
+				return averaged;
 			}).values().value();
 			
 			var mergedTiles = clusters.reduce(function(o, cluster){
