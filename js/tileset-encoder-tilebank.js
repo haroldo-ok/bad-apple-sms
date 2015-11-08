@@ -15,7 +15,7 @@
 		doEncoding: function(converted, originalVideo) {
 			converted.format = 'TILEBANK_MAPVH';
 
-			var firstStepEncoding = new TileSetEncoders.MirroredTileEncoder().encode(originalVideo);
+			var firstStepEncoding = new TileSetEncoders.ReducedTileEncoder().encode(originalVideo);
 			
 			// The tileBank contains the tiles that are used more than once; the others become part of the video stream.
 			converted.tileBank = _.chain(firstStepEncoding.frames)
