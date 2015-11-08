@@ -27,12 +27,28 @@
 				}, o); 
 			}, {});
 			
-			var clusters = _.chain(tileFrequency).keys().groupBy(function(hex){ 
-				var tileBits = TileSet.hexToTile(hex),
+			var byPopularity = _.chain(tileFrequency).pairs().sortBy(1).pluck(0).reverse().value();
+			var encodingParams = [
+				{stepX: 1, stepY: 1, divisor: 1, percent: 100},
+//				{stepX: 4, stepY: 4, divisor: 7, percent: 100},
+			];
+			
+			var encodingGroups = byPopularity.map(function(hex, i){
+				var percent = Math.min(100, i * 100 / byPopularity.length);
+				return {
+					hex: hex,
+					param: _.find(encodingParams, function(param){
+						return param.percent > percent;
+					})
+				};
+			});
+			
+			var clusters = _.chain(encodingGroups).groupBy(function(info){ 
+				var tileBits = TileSet.hexToTile(info.hex),
 					averaged = [],
-					stepX = 4, 
-					stepY = 4,
-					divisor = 6;
+					stepX = info.param.stepX, 
+					stepY = info.param.stepY,
+					divisor = info.param.divisor;
 					
 				for (var i = 0; i < 8; i += stepY) {
 					for (var j = 0; j < 8; j += stepX) {
@@ -49,7 +65,9 @@
 				}
 				
 				return averaged;
-			}).values().value();
+			}).values().map(function(cluster){
+				return _.pluck(cluster, 'hex');
+			}).value();
 			
 			var mergedTiles = clusters.reduce(function(o, cluster){
 				var tilesToMerge = cluster.map(function(hex){
