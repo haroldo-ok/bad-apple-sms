@@ -29,8 +29,8 @@
 			
 			var byPopularity = _.chain(tileFrequency).pairs().sortBy(1).pluck(0).reverse().value();
 			var encodingParams = [
-				{stepX: 2, stepY: 2, divisor: 1.5, percent: 2},
-				{stepX: 2, stepY: 4, divisor: 3.5, percent: 5},
+				//{stepX: 2, stepY: 2, divisor: 1.5, percent: 0.05},
+				{stepX: 2, stepY: 4, divisor: 3.5, percent: 0.1},
 				{stepX: 4, stepY: 4, divisor: 8, percent: 100},
 			];
 			
