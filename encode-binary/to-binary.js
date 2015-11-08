@@ -1,8 +1,8 @@
 var fs = require('fs');
 var BinWriter = require('./bin-writer');
 
-//var originalVideo = require('../data/encoded-video-20x15-30fps-deltarle.json');
-var originalVideo = require('../data/encoded-video-20x15-30fps-deltarle-reduced.json');
+var originalVideo = require('../data/encoded-video-20x15-30fps-deltarle.json');
+//var originalVideo = require('../data/encoded-video-20x15-30fps-deltarle-reduced.json');
 
 var wr = new BinWriter();
 
@@ -23,6 +23,24 @@ originalVideo.tileBank.forEach(function(tile){
 	wr.writeHex(tile);
 });
 
+// Single-use tiles; placed as a separate stream for better compression efficiency
+
+var allTilesToStream = originalVideo.frames.reduce(function(allTiles, frame){
+	if (frame.tilesToStream) {
+		frame.tilesToStream.forEach(function(tile){
+			allTiles.push(tile.tile);
+		});
+	}
+	return allTiles;
+}, []);
+
+wr.writeChar('S')
+	.writeWord(allTilesToStream.length);
+
+allTilesToStream.forEach(function(tile){
+	wr.writeHex(tile);
+});
+	
 // Frames
 
 wr.writeChar('*')
@@ -67,7 +85,7 @@ originalVideo.frames.forEach(function(frame){
 	}
 	wr.writeWord(TILEDATA_TERMINATOR);
 
-	// Unique tiles included as part of the stream, first all the destination slots, then the tiles, in order to achieve better compression.
+	// Only the destination slot is part of the stream; the tiles are on a separate stream for efficiency.
 	
 	if (frame.tilesToStream) {
 		frame.tilesToStream.forEach(function(tile){
@@ -75,14 +93,7 @@ originalVideo.frames.forEach(function(frame){
 		});
 	}
 	wr.writeWord(TILEDATA_TERMINATOR);
-	
-	if (frame.tilesToStream) {
-		frame.tilesToStream.forEach(function(tile){
-			wr.writeHex(tile.tile);
-		});
-	}
-	wr.writeWord(TILEDATA_TERMINATOR);
-	
+		
 	// Map Delta-RLE
 	
 	outputMapCommands(frame.map.tiles, function(command){
