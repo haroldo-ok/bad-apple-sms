@@ -19,6 +19,7 @@
 	<script src="../js/tileset-encoder-reduced.js" type="text/javascript"></script>
 	<script src="../js/tileset-encoder-tilebank.js" type="text/javascript"></script>
 	<script src="../js/tileset-encoder-deltarle.js" type="text/javascript"></script>
+	<script src="../js/tileset-encoder-deltabit.js" type="text/javascript"></script>
 </head>
 
 <body class="loading">
@@ -39,8 +40,9 @@
 			});
 			
 			$('#encoding-button').click(function(){
-				TileSetEncoders.ReducedTileEncoder.reduceTileCountTo = 24 * 1024;
-				var converted = new TileSetEncoders.DeltaRleTileEncoder().encode(originalVideo);
+				//TileSetEncoders.ReducedTileEncoder.reduceTileCountTo = 24 * 1024;
+				TileSetEncoders.ReducedTileEncoder.reduceTileCountTo = 0;
+				var converted = new TileSetEncoders.DeltaBitTileEncoder().encode(originalVideo);
 			
 				window.convertedVideo = converted;
 				console.info('Done!');
