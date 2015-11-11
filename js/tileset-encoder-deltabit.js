@@ -52,6 +52,37 @@
 			
 			var prevMapState = flattenMap(_.times(originalVideo.tileCountX * originalVideo.tileCountY, _.constant({n: 0})));
 			
+			function encodeRLE(cells) {
+				var rleBits = [];
+				var rleCells = [];
+				var i = 0;
+				while (i < cells.length) {
+					var rlePos = i + 1;
+					var rleCount = 1;
+					while (rlePos < cells.length && rleCount < 255 && _.isEqual(cells[i], cells[rlePos])) {
+						rlePos++;
+						rleCount++;
+					}
+					
+					if (rleCount > 1) {
+						rleBits.push(1);
+						rleCells.push({l: rleCount});
+						rleCells.push(cells[i]);
+					} else {
+						rleBits.push(0);
+						rleCells.push(cells[i]);						
+					}
+					
+					i = rlePos;
+				}
+
+				return {
+					bits: rleBits.join('').replace(/0+$/g, ''),
+					cells: rleCells,
+					size: 2 + Math.ceil(rleBits.length / 8) + rleCells.length
+				};
+			}
+			
 			function encodeDeltaBit(previous, current) {
 				var controlBits  = [];
 				var cells = [];
@@ -84,12 +115,21 @@
 				
 				// Joins the control bits into a string (for more compact JSON) and removes the zeroes at the right
 				controlBits = controlBits.join('').replace(/0+$/g, '');
-				
-				return {
+								
+				var result = {
 					initialSkip: initialSkip,
-					controlBits: controlBits,
-					cells: cells
+					controlBits: controlBits
 				};
+				
+				// Tries to see if RLE is worth it
+				var rle = encodeRLE(cells);
+				if (rle.size < cells.length) {
+					result.rleCells = rle;
+				} else {
+					result.cells = cells;
+				}
+				
+				return result;
 			}
 			
 			converted.frames = firstStepEncoding.frames.map(function(origFrame){
