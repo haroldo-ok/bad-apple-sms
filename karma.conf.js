@@ -15,6 +15,10 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
+      'js/third-party/*.js',
+      'js/util.js',
+      'js/tileset-encoder.js',
+      'js/*.js',
       'js/**/test/*.js'
     ],
 
