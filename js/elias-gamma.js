@@ -53,9 +53,26 @@
 		return decodeNumberFromStream(bits, 0).value;
 	}
 	
+	function encodeNumberArray(a) {
+		return a.map(encodeNumber).join('');
+	}
+	
+	function decodeNumberArray(bits) {
+		var result = [];
+		var pos = 0;
+		while (pos < bits.length) {
+			var r = decodeNumberFromStream(bits, pos);
+			result.push(r.value);
+			pos = r.nextPos;
+		}
+		return result;
+	}
+	
 	window.EliasGamma = {
 		encodeNumber: encodeNumber,
-		decodeNumber: decodeNumber
+		decodeNumber: decodeNumber,
+		encodeNumberArray: encodeNumberArray,
+		decodeNumberArray: decodeNumberArray
 	};
 	
 })();

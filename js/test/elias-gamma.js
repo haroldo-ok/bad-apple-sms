@@ -38,4 +38,11 @@ describe("appending strings", function() {
 			expect(EliasGamma.decodeNumber(row[1])).toEqual(row[0]);
 		});
     });
+	
+    it("should encode an array of numbers correctly", function() {
+		expect(EliasGamma.encodeNumberArray([8, 17])).toEqual("0001000000010001");
+    });
+    it("should decode an array of numbers correctly", function() {
+		expect(EliasGamma.decodeNumberArray("0001000000010001")).toEqual([8, 17]);
+    });
 });
