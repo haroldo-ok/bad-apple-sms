@@ -45,4 +45,21 @@ describe("appending strings", function() {
     it("should decode an array of numbers correctly", function() {
 		expect(EliasGamma.decodeNumberArray("0001000000010001")).toEqual([8, 17]);
     });
+	
+    it("should have functions to encode and decode sequences of bits", function() {
+        expect(EliasGamma.encodeBits).toBeDefined();
+        expect(EliasGamma.decodeBits).toBeDefined();
+    });
+    it("should encode and decode a long sequence of bits so that the end result is the same as the initial", function() {
+		function expectConsistentEncodingDecoding(bits) {
+			var encoded = EliasGamma.encodeBits(bits);
+			expect(encoded).toBeDefined();
+			
+			var decoded = EliasGamma.decodeBits(encoded);
+			expect(decoded).toEqual(bits);
+		}
+		
+		expectConsistentEncodingDecoding('0000000000000000000111000000000001100000000000000111000000000000000000000');
+		expectConsistentEncodingDecoding('1111100000011111000000011111111111111110000000000000000011101');
+	});
 });

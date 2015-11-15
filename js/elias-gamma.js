@@ -68,11 +68,49 @@
 		return result;
 	}
 	
+	function encodeBits(bits) {
+		var counts = [];
+		
+		var initialBit = bits[0];
+		var currentBit = initialBit;
+		for (var pos = 1, count = 1; pos < bits.length; pos++) {
+			if (bits[pos] != currentBit) {
+				currentBit = bits[pos];
+				counts.push(count);
+				count = 1;
+			} else {
+				count++;
+			}
+		}
+		if (count) {
+			counts.push(count);
+		}
+		
+		return initialBit + counts.map(encodeNumber).join('');
+	}
+	
+	function decodeBits(bits) {
+		var currentBit = bits[0] == 1;
+		var numbers = decodeNumberArray(bits.substr(1));
+		return numbers.map(function(count){
+			var n = currentBit ? '1' : '0';
+			var a = new Array(count);
+			for (var i = 0; i != count; i++) {
+				a[i] = n;
+			}
+			
+			currentBit = !currentBit;
+			return a.join('');
+		}).join('');
+	}
+	
 	window.EliasGamma = {
 		encodeNumber: encodeNumber,
 		decodeNumber: decodeNumber,
 		encodeNumberArray: encodeNumberArray,
-		decodeNumberArray: decodeNumberArray
+		decodeNumberArray: decodeNumberArray,
+		encodeBits: encodeBits,
+		decodeBits: decodeBits
 	};
 	
 })();
