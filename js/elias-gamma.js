@@ -31,8 +31,31 @@
 		return bits.join('');
 	}
 	
+	function decodeNumberFromStream(bits, initialPos) {
+		// Counts the zeroes
+		var count = 0;
+		for (var pos = initialPos; bits[pos] != 1; pos++) {
+			count++;
+		}
+		
+		// Gets the value
+		var endPos = pos + count + 1;
+		var part = bits.substring(pos, endPos);
+		var value = parseInt(part, 2);
+		
+		return {
+			value: value,
+			nextPos: endPos
+		}
+	}
+	
+	function decodeNumber(bits) {
+		return decodeNumberFromStream(bits, 0).value;
+	}
+	
 	window.EliasGamma = {
-		encodeNumber: encodeNumber
+		encodeNumber: encodeNumber,
+		decodeNumber: decodeNumber
 	};
 	
 })();
