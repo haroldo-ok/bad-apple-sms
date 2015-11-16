@@ -123,9 +123,19 @@
 				controlBits = controlBits.join('').replace(/0+$/g, '');
 								
 				var result = {
-					initialSkip: initialSkip,
-					controlBits: controlBits
+					initialSkip: initialSkip
 				};
+				
+				// Checks if using Elias-gamma encoding can reduce the size of the control bits
+				var eliasGamma = {
+					encodedBits: EliasGamma.encodeBits(controlBits),
+					originalLength: controlBits.length
+				};
+				if (Math.ceil(eliasGamma.encodedBits.length/8) < Math.ceil(controlBits.length)) {
+					result.eliasGammaControlBits = eliasGamma;
+				} else {
+					result.controlBits = controlBits;
+				}
 				
 				// Tries to see if RLE is worth it
 				var rle = encodeRLE(cells);
