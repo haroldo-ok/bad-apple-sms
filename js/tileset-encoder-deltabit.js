@@ -75,11 +75,17 @@
 					
 					i = rlePos;
 				}
+				
+				// Skips the initial zeroes.
+				var bits = rleBits.join('').replace(/0+$/g, '');
+				var toSkip = Math.max(0, bits.indexOf('1'));
+				bits = bits.substr(toSkip);
 
 				return {
-					bits: rleBits.join('').replace(/0+$/g, ''),
+					bits: bits,
+					toSkip: toSkip,
 					cells: rleCells,
-					size: 2 + Math.ceil(rleBits.length / 8) + rleCells.length
+					size: 2 + Math.ceil(bits.length / 8) + rleCells.length
 				};
 			}
 			
