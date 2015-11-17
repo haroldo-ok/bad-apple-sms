@@ -179,7 +179,23 @@
 				avgTilesToLoadPerFrame: Math.round(tileCounts.reduce(add, 0) / converted.frames.length),
 				totalTileLoadsFromBank: sumLengths(converted.frames, 'tilesFromBank'),
 				totalTilesToStream: sumLengths(converted.frames, 'tilesToStream'),
-				encodedMapBytes: _.chain(converted.frames).map(function(f){ return f.map.tiles.length + f.map.attrs.length }).reduce(add, 0).value()
+				encodedMapBytes: _.chain(converted.frames).pluck('map').map(function(m){  return [m.tiles, m.attrs] }).flatten().reduce(function(s, o){ 
+					if (o.unchanged) { 
+						return s + 1; 
+					} 
+					
+					var cellByteCount = o.cells ? o.cells.length : Math.ceil(o.rleCells.bits.length / 8) + o.rleCells.cells.length;
+					if (_.isNaN(cellByteCount)) {
+						throw new Error('This shouldn\'t be NaN');
+					}
+					
+					var controlBitByteCount = Math.ceil((o.controlBits ? o.controlBits.length : o.eliasGammaControlBits.encodedBits.length) / 8);
+					if (_.isNaN(controlBitByteCount)) {
+						throw new Error('This shouldn\'t be NaN');
+					}
+					
+					return s + 2 + cellByteCount + controlBitByteCount;
+				}, 0).value()
 			};
 			
 			stats.estimatedMaximumSize = converted.tileBank.length * 8 + // Supposes there's no compression
