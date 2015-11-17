@@ -179,12 +179,30 @@
 				avgTilesToLoadPerFrame: Math.round(tileCounts.reduce(add, 0) / converted.frames.length),
 				totalTileLoadsFromBank: sumLengths(converted.frames, 'tilesFromBank'),
 				totalTilesToStream: sumLengths(converted.frames, 'tilesToStream'),
-				encodedMapBytes: _.chain(converted.frames).pluck('map').map(function(m){  return [m.tiles, m.attrs] }).flatten().reduce(function(s, o){ 
+				encodedMapBytes: _.chain(converted.frames).pluck('map').map(function(m){  
+					return [
+						{t: 't', d: m.tiles}, 
+						{t: 'a', d: m.attrs}
+					]; 
+				}).flatten().reduce(function(s, data){ 
+					var t = data.t;
+					var o = data.d;
+				
 					if (o.unchanged) { 
 						return s + 1; 
 					} 
 					
-					var cellByteCount = o.cells ? o.cells.length : Math.ceil(o.rleCells.bits.length / 8) + o.rleCells.cells.length;
+					if (t == 't') {
+						// Tile number map uses bytes
+						var cellByteCount = o.cells ? o.cells.length : Math.ceil(o.rleCells.bits.length / 8) + o.rleCells.cells.length;
+					} else {
+						// Attribute map tries to cram everything in nibbles
+						var cellByteCount = o.cells ? Math.ceil(o.cells.length / 2) : 
+								(Math.ceil(o.rleCells.bits.length / 8) + 
+									Math.ceil(o.rleCells.cells.reduce(function(s, cell){ return s + cell.l ? 1 : 0.5 }, 0))
+								);						
+					}
+							
 					if (_.isNaN(cellByteCount)) {
 						throw new Error('This shouldn\'t be NaN');
 					}
