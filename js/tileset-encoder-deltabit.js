@@ -30,24 +30,7 @@
 			converted.tileBank = firstStepEncoding.tileBank.slice();
 			
 			function flattenMap(map) {
-				var flattened = _.flatten(map);
-				return {
-					tiles: flattened.map(function(cell){
-						// The tiles array will only contain the bottom 8 bits of the tile number
-						return {
-							n: cell.n & 0xFF
-						};
-					}),
-					
-					attrs: flattened.map(function(cell){
-						var attrs = _.pick(cell, 'v', 'h', 'i');
-						// Tells if the 9th bit of the tile number is on
-						if (cell.n & 0x100) {
-							attrs.t = 1;
-						}
-						return attrs;
-					})
-				}
+				return _.flatten(map);
 			}
 			
 			var prevMapState = flattenMap(_.times(originalVideo.tileCountX * originalVideo.tileCountY, _.constant({n: 0})));
@@ -152,10 +135,7 @@
 				var destFrame = _.omit(origFrame, 'map');
 				
 				var mapState = flattenMap(origFrame.map);				
-				destFrame.map = {
-					tiles: encodeDeltaBit(prevMapState.tiles, mapState.tiles),
-					attrs: encodeDeltaBit(prevMapState.attrs, mapState.attrs)
-				};
+				destFrame.map = encodeDeltaBit(prevMapState, mapState),
 				prevMapState = mapState;
 				
 				return destFrame;
@@ -181,8 +161,7 @@
 				totalTilesToStream: sumLengths(converted.frames, 'tilesToStream'),
 				encodedMapBytes: _.chain(converted.frames).pluck('map').map(function(m){  
 					return [
-						{t: 't', d: m.tiles}, 
-						{t: 'a', d: m.attrs}
+						{t: 'a', d: m}
 					]; 
 				}).flatten().reduce(function(s, data){ 
 					var t = data.t;
@@ -192,16 +171,8 @@
 						return s + 1; 
 					} 
 					
-					if (t == 't') {
-						// Tile number map uses bytes
-						var cellByteCount = o.cells ? o.cells.length : Math.ceil(o.rleCells.bits.length / 8) + o.rleCells.cells.length;
-					} else {
-						// Attribute map tries to cram everything in nibbles
-						var cellByteCount = o.cells ? Math.ceil(o.cells.length / 2) : 
-								(Math.ceil(o.rleCells.bits.length / 8) + 
-									Math.ceil(o.rleCells.cells.reduce(function(s, cell){ return s + cell.l ? 1 : 0.5 }, 0))
-								);						
-					}
+					// Tile number map uses 12 bit entries
+					var cellByteCount = o.cells ? Math.ceil(o.cells.length * 12 / 8) : Math.ceil(o.rleCells.bits.length / 8) + Math.ceil(o.rleCells.cells.length * 12 / 8);
 							
 					if (_.isNaN(cellByteCount)) {
 						throw new Error('This shouldn\'t be NaN');
