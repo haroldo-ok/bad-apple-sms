@@ -36,7 +36,6 @@
 			var prevMapState = flattenMap(_.times(originalVideo.tileCountX * originalVideo.tileCountY, _.constant({n: 0})));
 			
 			function encodeRLE(cells) {
-				var rleBits = [];
 				var rleCells = [];
 				var i = 0;
 				while (i < cells.length) {
@@ -48,27 +47,18 @@
 					}
 					
 					if (rleCount > 1) {
-						rleBits.push(1);
 						rleCells.push({l: rleCount});
 						rleCells.push(cells[i]);
 					} else {
-						rleBits.push(0);
 						rleCells.push(cells[i]);						
 					}
 					
 					i = rlePos;
 				}
-				
-				// Skips the initial zeroes.
-				var bits = rleBits.join('').replace(/0+$/g, '');
-				var toSkip = Math.max(0, bits.indexOf('1'));
-				bits = bits.substr(toSkip);
 
 				return {
-					bits: bits,
-					toSkip: toSkip,
 					cells: rleCells,
-					size: 2 + Math.ceil(bits.length / 8) + rleCells.length
+					size: rleCells.length
 				};
 			}
 			
@@ -172,7 +162,7 @@
 					} 
 					
 					// Tile number map uses 12 bit entries
-					var cellByteCount = o.cells ? Math.ceil(o.cells.length * 12 / 8) : Math.ceil(o.rleCells.bits.length / 8) + Math.ceil(o.rleCells.cells.length * 12 / 8);
+					var cellByteCount = o.cells ? Math.ceil(o.cells.length * 12 / 8) : Math.ceil(o.rleCells.cells.length * 12 / 8);
 							
 					if (_.isNaN(cellByteCount)) {
 						throw new Error('This shouldn\'t be NaN');
