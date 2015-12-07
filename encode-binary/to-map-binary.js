@@ -74,6 +74,30 @@ function prepareCellsRLE(cells) {
 	return cells;
 }
 
+function prepareCellsNoRle(cells) {
+	var result = [];
+	
+	var pos = 0;
+	while (pos < cells.length) {
+		var cell = cells[pos];
+		pos++;
+		
+		if (cell.l) {
+			var len = cell.l;
+			cell = cells[pos];
+			pos++;
+			
+			for (var i = 0; i < len; i++) {
+				result.push(cell);
+			}
+		} else {
+			result.push(cell);
+		}
+	}
+	
+	return result;
+}
+
 function writeCellWordsUnpacked(wr, words) {
 	words.forEach(function(word){
 		wr.writeWord(word);
@@ -100,5 +124,17 @@ convertVideo({
 convertVideo({
 	fileName: 'maps-deltabit-rle-packed.bin',
 	prepareCells: prepareCellsRLE,
+	writeCellWords: writeCellWordsPacked
+});
+
+convertVideo({
+	fileName: 'maps-deltabit-norle-unpacked.bin',
+	prepareCells: prepareCellsNoRle,
+	writeCellWords: writeCellWordsUnpacked
+});
+
+convertVideo({
+	fileName: 'maps-deltabit-norle-packed.bin',
+	prepareCells: prepareCellsNoRle,
 	writeCellWords: writeCellWordsPacked
 });
