@@ -23,17 +23,20 @@ originalVideo.frames.forEach(function(frame){
 	
 	// If something changed, first build the map frame header
 	
-	var controlBitsLength = 
-			map.controlBits ? map.controlBits.length : 
-			map.eliasGammaControlBits ? map.eliasGammaControlBits.encodedBits.length :
-			0;
+	var controlBits = 
+			map.controlBits ? map.controlBits : 
+			map.eliasGammaControlBits ? map.eliasGammaControlBits.encodedBits :
+			'';
 	
 	var controlFlags =
 			((map.initialSkip || 0) & 0x1F) |	// How many bytes to skip initially
-			((controlBitsLength & 0x1F) << 5) |	// How many control bits are being used
+			((controlBits.length & 0x1F) << 5) |	// How many control bits are being used
 			(map.eliasGammaControlBits ? mapFlags.USES_ELIAS_GAMMA : 0) |	// If the control bits are elias-gamma packed
 			(map.rleCells ? mapFlags.USES_RLE : 0) ; // If the map data is RLE-packed
 	wr.writeWord(controlFlags);
+	
+	// Writes the control bits	
+	wr.writeBits(controlBits);
 });
 
 fs.writeFile('maps-deltabit-rle-unpacked.bin', wr.toBuffer());
