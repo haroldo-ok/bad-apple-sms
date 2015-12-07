@@ -80,8 +80,25 @@ function writeCellWordsUnpacked(wr, words) {
 	});
 }
 
+function writeCellWordsPacked(wr, words) {
+	// The tile number + attrs only takes 12 bytes; packs them together
+	for (var i = 0; i < words.length; i += 2) {
+		var wordA = words[i];
+		var wordB = words[i+1];
+		wr.writeByte(wordA & 0xFF)
+			.writeByte(wordB & 0xFF)
+			.writeByte((wordA >> 8) | ((wordB >> 8) << 4));
+	}
+}
+
 convertVideo({
 	fileName: 'maps-deltabit-rle-unpacked.bin',
 	prepareCells: prepareCellsRLE,
 	writeCellWords: writeCellWordsUnpacked
+});
+
+convertVideo({
+	fileName: 'maps-deltabit-rle-packed.bin',
+	prepareCells: prepareCellsRLE,
+	writeCellWords: writeCellWordsPacked
 });
