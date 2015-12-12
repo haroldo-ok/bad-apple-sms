@@ -115,6 +115,16 @@ function writeCellWordsPacked(wr, words) {
 	}
 }
 
+function saveHexTiles(fileName, hexTiles) {
+	var wr = new BinWriter();	
+
+	hexTiles.forEach(function(tile){
+		wr.writeHex(tile);
+	});
+	
+	fs.writeFile(fileName, wr.toBuffer());
+}
+
 convertVideo({
 	fileName: 'maps-deltabit-rle-unpacked.bin',
 	prepareCells: prepareCellsRLE,
@@ -138,3 +148,14 @@ convertVideo({
 	prepareCells: prepareCellsNoRle,
 	writeCellWords: writeCellWordsPacked
 });
+
+saveHexTiles('tiles-reused.bin', originalVideo.tileBank);
+saveHexTiles('tiles-single-use.bin', originalVideo.frames.reduce(function(allTiles, frame){
+	if (frame.tilesToStream) {
+		return allTiles.concat(frame.tilesToStream.map(function(tile){
+			return tile.tile;
+		}));
+	} else {
+		return allTiles;
+	}
+}, []));
