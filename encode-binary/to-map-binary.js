@@ -115,6 +115,16 @@ function writeCellWordsPacked(wr, words) {
 	}
 }
 
+function saveHexTiles(fileName, hexTiles) {
+	var wr = new BinWriter();	
+
+	hexTiles.forEach(function(tile){
+		wr.writeHex(tile);
+	});
+	
+	fs.writeFile(fileName, wr.toBuffer());
+}
+
 convertVideo({
 	fileName: 'maps-deltabit-rle-unpacked.bin',
 	prepareCells: prepareCellsRLE,
@@ -138,3 +148,5 @@ convertVideo({
 	prepareCells: prepareCellsNoRle,
 	writeCellWords: writeCellWordsPacked
 });
+
+saveHexTiles('tiles-reused.bin', originalVideo.tileBank);
