@@ -1,1 +1,3 @@
-Reused:
+Reused: 19968 tiles
+Pointer table: 19968 * (17 + 3) / 8 = 49920
+Multiple pointer tables: 19968 * (13 + 3) / 8 = 39936
