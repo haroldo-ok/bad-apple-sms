@@ -150,3 +150,12 @@ convertVideo({
 });
 
 saveHexTiles('tiles-reused.bin', originalVideo.tileBank);
+saveHexTiles('tiles-single-use.bin', originalVideo.frames.reduce(function(allTiles, frame){
+	if (frame.tilesToStream) {
+		return allTiles.concat(frame.tilesToStream.map(function(tile){
+			return tile.tile;
+		}));
+	} else {
+		return allTiles;
+	}
+}, []));
